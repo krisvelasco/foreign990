@@ -12,6 +12,7 @@
 library(tidyverse)
 library(lubridate)
 library(readxl)
+library(countrycode)
 
 # Import data
 
@@ -43,14 +44,17 @@ header <- read_csv("/Users/srojascabal/Google Drive/F990/Data from OneDrive/retu
       anti == 1 ~ 1,
       TRUE ~ 0),
       anti_factor = as_factor(case_when(anti == 1 ~ "Anti-LGBTQ+",
-                                        anti == 0 ~ "Other NGOs")))
-  
-  test_nodups <- header_anti %>%
+                                        anti == 0 ~ "Other NGOs"))) %>%
     mutate(FileTs = RtrnHdr_RtrnTs) %>%
     group_by(ein, fiscal_year) %>%
     slice_max(order_by = FileTs, n = 1) # Removes multiple submissions in a single tax year. Keeps the most recent. 20438 obs removed.
-                                
+
+# Regions spending
+  where_activities$Region1 <- countrycode(sourcevar = where_activities$CleanRgn,
+                                          origin = "country.name",
+                                          destination = "continent")
   
+                                  
 # Part 0 - Basic info
 part_0 <- read_csv("/Users/srojascabal/Google Drive/F990/Data from OneDrive/part_0.csv")
   test <- slice(part_0, 1:5)
@@ -58,7 +62,7 @@ part_0 <- read_csv("/Users/srojascabal/Google Drive/F990/Data from OneDrive/part
 # Part IV - Where they tell you if they send money abroad or not
 part_iv <- read_csv("/Users/srojascabal/Google Drive/F990/Data from OneDrive/part_iv.csv")
 
-# Anti-LGBTQ orgs
+# Sched F - Actvities
 sched_f_activities <- read_csv("/Users/srojascabal/Google Drive/F990/Data from OneDrive/sched_f_activities.csv")
 
 varnames.sched_f_i <- colnames(sched_f_i)
@@ -78,6 +82,5 @@ where_activities <- select(sched_f_activities, RgnTxt) %>%
   distinct() # over 3k unique places. That's a lot!
 
 
-# SO NEXT STEPS: RETURN HEADER TO IDENTIFY ORGS AND FILING YEARS,
 # THEN, GO ON PART IV TO SEE IF THEY CLAIM TO GIVE MONEY ABROAD, GET THE % OF EXPENDETURES ABROAD
 # TOTAL GRANTS, TOTAL MONEY SPENT ABROAD, WHERE?

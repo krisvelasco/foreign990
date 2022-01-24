@@ -12,7 +12,7 @@
 library(tidyverse)
 library(lubridate)
 library(readxl)
-library(countrycode)
+#library(countrycode) # I used to try out an efficient way of finding the places to which grants go.
 
 # Import data
 
@@ -22,21 +22,20 @@ library(countrycode)
 #sched_f_i <- read_csv("/Users/srojascabal/Google Drive/F990/Data from OneDrive/sched_f_i.csv")
 #sched_f_ii <- read_csv("/Users/srojascabal/Google Drive/F990/Data from OneDrive/sched_f_ii.csv")
 #sched_f_iv <- read_csv("/Users/srojascabal/Google Drive/F990/Data from OneDrive/sched_f_iv.csv")
-sched_f_activities <- read_csv("/Users/srojascabal/Google Drive/F990/Data from OneDrive/sched_f_activities.csv")
-sched_f_individ_grants <- read_csv("/Users/srojascabal/Google Drive/F990/Data from OneDrive/sched_f_individ_grants.csv")
+sched_f_activities <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/sched_f_activities.csv")
+getwsched_f_individ_grants <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/sched_f_individ_grants.csv")
 
 # Known anti-LGBTQ orgs
-antilgbt <- read_excel("/Users/srojascabal/Google Drive/F990/Data from OneDrive/Select Anti-LGBT+ Organizations - Foreign Expenditures.xlsx") %>%
+antilgbt <- read_excel("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/Select Anti-LGBT+ Organizations - Foreign Expenditures.xlsx") %>%
     distinct(name, ein) %>%
     mutate(anti = 1,
            ein2 = ein,
            ein = as.numeric(str_remove_all(ein2, "-"))) # removed the - in the string in order to make the records compatible
 
 # Header
-header <- read_csv("/Users/srojascabal/Google Drive/F990/Data from OneDrive/return_header.csv")
-  header_select <- select(header, ein, RtrnHdr_RtrnTs, RtrnHdr_TxPrdEndDt, RtrnHdr_TxPrdBgnDt) %>% # only the vars we need
-  mutate(fiscal_year = year(RtrnHdr_TxPrdEndDt),
-         hour_submission = hour(RtrnHdr_RtrnTs)) # some changes on the year/time stamps, for future cleaning work
+header <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/return_header.csv")
+  header_select <- select(header, ein, RtrnHdr_RtrnTs, RtrnHdr_TxPrdBgnDt, RtrnHdr_TxPrdEndDt) %>% # only the vars we need
+  mutate(fiscal_year = year(RtrnHdr_TxPrdEndDt)) # creating the fiscal_year variable, will be useful later.
   
 # Header with anti-lgbtq indicator
   header_anti <- full_join(header_select, antilgbt, by = c("ein")) %>%
@@ -45,11 +44,36 @@ header <- read_csv("/Users/srojascabal/Google Drive/F990/Data from OneDrive/retu
       TRUE ~ 0),
       anti_factor = as_factor(case_when(anti == 1 ~ "Anti-LGBTQ+",
                                         anti == 0 ~ "Other NGOs"))) %>%
-    mutate(FileTs = RtrnHdr_RtrnTs) %>%
-    group_by(ein, fiscal_year) %>%
-    slice_max(order_by = FileTs, n = 1) # Removes multiple submissions in a single tax year. Keeps the most recent. 20438 obs removed.
+    mutate(FileTs = RtrnHdr_RtrnTs)
+  
+  dups <- header_anti %>% count(ein, fiscal_year) %>%
+    mutate(dup = case_when(
+      n == 1 ~ 0,
+      n > 1 ~ 1)) %>%
+    group_by(ein, fiscal_year)
+  
+  dups2 <- filter(dups, dup == 1)
+  
+  header_anti2 <- full_join(header_anti, dups, by = c("ein", "fiscal_year")) # includes a dummy showing dups per ein x year
 
-# Regions spending
+  test <- filter(header_anti2, dup == 1 & ein == 237450425)
+  
+  test2 <- test %>%
+    slice_max(order_by = FileTs, n =1)
+  
+
+  testA <- filter(header_anti2, ein == 10211486)
+  
+  testB <- testA %>%
+    group_by(fiscal_year) %>%
+    slice_max(order_by = FileTs, n =1) # THIS METHOD WORKS, GROUPING BY EIN AND FISCAL YEAR, CHECK FOR DUPS AGAIN AFTER.
+  
+  # stop here
+
+    group_by(ein) #%>%
+    slice_max(order_by = FileTs, n = 1) # Removes multiple submissions in a single tax year. Keeps the most recent. 20436 obs removed.
+
+# TRIAL - Regions spending
   where_activities$Region1 <- countrycode(sourcevar = where_activities$CleanRgn,
                                           origin = "country.name",
                                           destination = "continent")

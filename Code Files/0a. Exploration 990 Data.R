@@ -37,8 +37,8 @@ header <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/retur
   header_select <- select(header, ein, RtrnHdr_RtrnTs, RtrnHdr_TxPrdBgnDt, RtrnHdr_TxPrdEndDt) %>% # only the vars we need
   mutate(fiscal_year = year(RtrnHdr_TxPrdEndDt)) # creating the fiscal_year variable, will be useful later.
   
-# Header with anti-lgbtq indicator
-  header_anti <- full_join(header_select, antilgbt, by = c("ein")) %>%
+# JOIN: Header with anti-lgbtq indicator
+  header_anti <- left_join(header_select, antilgbt, by = c("ein")) %>%
     mutate(anti = case_when(
       anti == 1 ~ 1,
       TRUE ~ 0),
@@ -46,30 +46,47 @@ header <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/retur
                                         anti == 0 ~ "Other NGOs"))) %>%
     mutate(FileTs = RtrnHdr_RtrnTs)
   
+  # IMPORTANT NOTE: American Values (EIN: 521762320) and Homeschool Legal Defense Association (521354365)
+  # do not have a matching EIN in the general NGO data frame.
+    # Checking by their EINs in the general EIN data.
+    # aval <- filter(header_select, ein == 521762320)
+    # homeschool <- filter(header_select, ein == 521354365)
+  
+    # antijoin_header <- anti_join(antilgbt, header_select, by = c("ein")) # %>%
+    #   mutate(anti = case_when(
+    #     anti == 1 ~ 1,
+    #     TRUE ~ 0),
+    #     anti_factor = as_factor(case_when(anti == 1 ~ "Anti-LGBTQ+",
+    #                                       anti == 0 ~ "Other NGOs")))  %>%
+    #   mutate(FileTs = RtrnHdr_RtrnTs)
+  
+# REMOVING DUPLICATE ENTRIES EIN X FISCAL YEAR
+  # Checking for duplicated entries for ein x year. We keep most recent submission.
   dups <- header_anti %>% count(ein, fiscal_year) %>%
     mutate(dup = case_when(
       n == 1 ~ 0,
       n > 1 ~ 1)) %>%
     group_by(ein, fiscal_year)
   
-  dups2 <- filter(dups, dup == 1)
-  
-  header_anti2 <- full_join(header_anti, dups, by = c("ein", "fiscal_year")) # includes a dummy showing dups per ein x year
+  # Full join with header data
+    header_anti2 <- full_join(header_anti, dups, by = c("ein", "fiscal_year")) %>%
+      group_by(ein, fiscal_year) %>%
+      slice_max(order_by = FileTs, n =1)
+      # includes a dummy showing dups per ein x year
+      # removes duplicated observations for ein x year. Keeps most recent submission.
 
-  test <- filter(header_anti2, dup == 1 & ein == 237450425)
+    # NECESSARY TO CHECK FURTHER FOR DUPLICATES?
+    # dups_anti2 <- header_anti2 %>% count(ein, fiscal_year) %>%
+    #   mutate(dup = case_when(
+    #     n == 1 ~ 0,
+    #     n > 1 ~ 1)) %>%
+    #   group_by(ein, fiscal_year)
+    
+# EXPORTING: Clean header data with anti-lgbtq indicator
+    # write_csv()
+    
+test_anti <- filter(header_anti2, anti == 1)
   
-  test2 <- test %>%
-    slice_max(order_by = FileTs, n =1)
-  
-
-  testA <- filter(header_anti2, ein == 10211486)
-  
-  testB <- testA %>%
-    group_by(fiscal_year) %>%
-    slice_max(order_by = FileTs, n =1) # THIS METHOD WORKS, GROUPING BY EIN AND FISCAL YEAR, CHECK FOR DUPS AGAIN AFTER.
-  
-  # stop here
-
     group_by(ein) #%>%
     slice_max(order_by = FileTs, n = 1) # Removes multiple submissions in a single tax year. Keeps the most recent. 20436 obs removed.
 

@@ -1,0 +1,243 @@
+---
+title: "Foreign Spending by Anti-LBTQ+ Non-profits"
+author: "Sebastian Rojas Cabal"
+date: "2/9/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(tidyverse)
+```
+
+```{r import, echo=FALSE, message=FALSE}
+frgnxpns_clean <- read_csv("/Volumes/GoogleDrive/My Drive/F990/Data from OneDrive/foreign_expenses.csv")
+
+anti_orgs_table <- frgnxpns_clean %>%
+    filter(anti == 1) %>%
+    select(name, factor_txyr, state_factor,
+           clean_totalFrgnGrnts) %>%
+    group_by(name, factor_txyr) %>%
+    mutate(clean_totalFrgnGrnts = clean_totalFrgnGrnts/1000000) %>%
+    spread(factor_txyr, clean_totalFrgnGrnts) %>%
+    rename(
+      FrgnGrnts_2014 = `2014`,
+      FrgnGrnts_2015 = `2015`,
+      FrgnGrnts_2016 = `2016`,
+      FrgnGrnts_2017 = `2017`,
+      FrgnGrnts_2018 = `2018`,
+      FrgnGrnts_2019 = `2019`
+    ) %>%
+    rename(
+      state = state_factor,
+      expenses_2019 = FrgnGrnts_2019
+    ) %>%
+    mutate(
+      expenses_pctchange_1419 = (expenses_2019/FrgnGrnts_2014)*100
+    )
+
+#------
+# Table with expenses for all years (2014-2019)
+#------
+#  anti_orgs_table_cln <- anti_orgs_table %>%
+#    select(name,
+#           state,
+#           FrgnGrnts_2014,
+#           FrgnGrnts_2015,
+#           FrgnGrnts_2016,
+#           FrgnGrnts_2017,
+#           FrgnGrnts_2018,
+#           expenses_2019,
+#           expenses_pctchange_1419) %>%
+#    rename(
+#      Organization = name,
+#      State = state,
+#      `2014` = FrgnGrnts_2014,
+#      `2015` = FrgnGrnts_2015,
+#      `2016` = FrgnGrnts_2016,
+#      `2017` = FrgnGrnts_2017,
+#      `2018` = FrgnGrnts_2018,
+#      `2019` = expenses_2019,
+#      `Change in Expenses (%)` = expenses_pctchange_1419
+#    ) %>%
+#    mutate(
+#      Organization = as.factor(Organization),
+#      `Change in Expenses (%)` = case_when(
+#      Organization == "Alliance Defending Freedom" ~ `2019`/`2014`,
+#      Organization == "Association of Christian Schools International" ~ `2019`/`2014`,
+#      #Organization == "Catholic University of America" ~ NA,
+#      Organization == "Christian Broadcasting Network" ~ `2019`/`2014`,
+#      Organization == "Christian Freedom International" ~ `2019`/`2015`,
+#      Organization == "Family Research Council" ~ `2019`/`2017`,
+#      #Organization == "Family Watch International" ~ NA,
+#      #Organization == "Focus on the Family" ~ NA,
+#      Organization == "Human Life International" ~ `2019`/`2014`,
+#      Organization == "International Christian Concern" & State == "DC" ~ `2019`/`2014`,
+#      #Organization == "International Christian Concern" ~ NA,
+#      #Organization == "Leadership Institute" ~ NA,
+#      Organization == "Population Research Institute" ~ `2019`/`2014`,
+#      Organization == "Reach the Children" ~ `2019`/`2014`,
+#      #Organization == "Religious Freedom Coalition" ~ NA,
+#      #Organization == "World Evangelical Alliance" ~ NA,
+#      Organization == "World Evangelical Alliance" & State == "NY" ~ `2018`/`2014`,
+#      Organization == "World Vision International" ~ `2019`/`2014`,
+#      )
+#    ) %>%
+#    mutate(
+#      `2014` = round(`2014`, 2),
+#      `2014` = as.character(`2014`),
+#      `2014` =case_when(
+#        is.na(`2014`)==TRUE ~ "",
+#        TRUE ~ `2014`
+#      ),
+#      `2015` = round(`2015`, 2),
+#      `2015` = as.character(`2015`),
+#      `2015` =case_when(
+#        is.na(`2015`)==TRUE ~ "",
+#        TRUE ~ `2015`
+#      ),
+#      `2016` = round(`2016`, 2),
+#      `2016` = as.character(`2016`),
+#      `2016` =case_when(
+#        is.na(`2016`)==TRUE ~ "",
+#        TRUE ~ `2016`
+#      ),
+#      `2017` = round(`2017`, 2),
+#      `2017` = as.character(`2017`),
+#      `2017` =case_when(
+#        is.na(`2017`)==TRUE ~ "",
+#        TRUE ~ `2017`
+#      ),
+#      `2018` = round(`2018`, 2),
+#      `2018` = as.character(`2018`),
+#      `2018` =case_when(
+#        is.na(`2018`)==TRUE ~ "",
+#        TRUE ~ `2018`
+#      ),
+#      `2019` = round(`2019`, 2),
+#      `2019` = as.character(`2019`),
+#      `2019` =case_when(
+#        is.na(`2019`)==TRUE ~ "",
+#        TRUE ~ `2019`
+#      ),
+#      `Change in Expenses (%)` = round(`Change in Expenses (%)`, 2),
+#      `Change in Expenses (%)` = as.character(`Change in Expenses (%)`),
+#      `Change in Expenses (%)` = case_when(
+#        is.na(`Change in Expenses (%)`) == TRUE ~ "",
+#        TRUE ~ `Change in Expenses (%)`)
+#    )
+# There's an org which does not show up because name = NA
+
+
+#------
+# Table with expenses for 2014 and 2019 (2018 in some cases)
+#------
+ anti_orgs_table_cln <- anti_orgs_table %>%
+   select(name,
+          state,
+          FrgnGrnts_2014,
+          FrgnGrnts_2015,
+          FrgnGrnts_2016,
+          FrgnGrnts_2017,
+          FrgnGrnts_2018,
+          expenses_2019,
+          expenses_pctchange_1419) %>%
+   rename(
+     Organization = name,
+     State = state,
+     `2014` = FrgnGrnts_2014,
+     `2015` = FrgnGrnts_2015,
+     `2016` = FrgnGrnts_2016,
+     `2017` = FrgnGrnts_2017,
+     `2018` = FrgnGrnts_2018,
+     `2019` = expenses_2019,
+     `Change in Expenses (%)` = expenses_pctchange_1419
+   ) %>%
+   mutate(
+     `2019` = case_when(
+       State == "NY" & Organization == "World Evangelical Alliance" ~ 0.16,
+       TRUE ~ `2019`)
+     ) %>%
+  mutate(
+     `2015` = case_when(
+       State == "DC" & Organization == "International Christian Concern" ~ 0.38,
+       TRUE ~ `2015`)
+     ) %>%
+   mutate(
+     Organization = as.factor(Organization),
+     `Change in Expenses (%)` = case_when(
+     Organization == "ACTON Institute for the Study of Religion and Liberty" ~ ((`2019`-`2014`)/`2014`)*100,
+     Organization == "Alliance Defending Freedom" ~ ((`2019`-`2014`)/`2014`)*100,
+     Organization == "Fellowship Foundation" ~ ((`2019`-`2014`)/`2014`)*100,
+     Organization == "International Human Rights Group" ~ ((`2019`-`2014`)/`2014`)*100,
+     Organization == "Intervarsity Christian Fellowship" ~ ((`2019`-`2014`)/`2014`)*100,
+     Organization == "World Youth Alliance" ~ ((`2019`-`2014`)/`2014`)*100,
+     Organization == "Association of Christian Schools International" ~ ((`2019`-`2014`)/`2014`)*100,
+     Organization == "Christian Broadcasting Network" ~ ((`2019`-`2014`)/`2014`)*100,
+     Organization == "Human Life International" ~ ((`2019`-`2014`)/`2014`)*100,
+     Organization == "International Christian Concern" & State == "DC" ~ ((`2019`-`2014`)/`2014`)*100,
+     Organization == "Population Research Institute" ~ ((`2019`-`2014`)/`2014`)*100,
+     Organization == "Reach the Children" ~ ((`2019`-`2014`)/`2014`)*100,
+     Organization == "World Evangelical Alliance" & State == "NY" ~ ((`2019`-`2014`)/`2014`)*100,
+     Organization == "World Vision International" ~ ((`2019`-`2014`)/`2014`)*100,
+     )
+   ) %>%
+   mutate(
+     `2014` = round(`2014`, 2),
+     `2014` = as.character(`2014`),
+     `2014` =case_when(
+       is.na(`2014`)==TRUE ~ "",
+       TRUE ~ `2014`
+     ),
+     `2015` = round(`2015`, 2),
+     `2015` = as.character(`2015`),
+     `2015` =case_when(
+       is.na(`2015`)==TRUE ~ "",
+       TRUE ~ `2015`
+     ),
+     `2016` = round(`2016`, 2),
+     `2016` = as.character(`2016`),
+     `2016` =case_when(
+       is.na(`2016`)==TRUE ~ "",
+       TRUE ~ `2016`
+     ),
+     `2017` = round(`2017`, 2),
+     `2017` = as.character(`2017`),
+     `2017` =case_when(
+       is.na(`2017`)==TRUE ~ "",
+       TRUE ~ `2017`
+     ),
+     `2018` = round(`2018`, 2),
+     `2018` = as.character(`2018`),
+     `2018` =case_when(
+       is.na(`2018`)==TRUE ~ "",
+       TRUE ~ `2018`
+     ),
+     `2019` = round(`2019`, 2),
+     `2019` = as.character(`2019`),
+     `2019` =case_when(
+       is.na(`2019`)==TRUE ~ "",
+       TRUE ~ `2019`
+     ),
+     `Change in Expenses (%)` = round(`Change in Expenses (%)`, 2),
+     `Change in Expenses (%)` = as.character(`Change in Expenses (%)`),
+     `Change in Expenses (%)` = case_when(
+       is.na(`Change in Expenses (%)`) == TRUE ~ "",
+       TRUE ~ `Change in Expenses (%)`)
+   ) %>%
+  filter(State != "IL" & State != "MD") %>%
+  select(
+    Organization, State, `2014`, `2019`, `Change in Expenses (%)`
+  )
+# There's an org which does not show up because name = NA
+
+```
+
+
+
+```{r table1, echo=FALSE}
+kable(anti_orgs_table_cln, digits=2,
+      caption = "Expenses in Millions of US dollars")
+```
+

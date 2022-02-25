@@ -1,0 +1,39 @@
+---
+title: "Memo: Recognizing anti-LGBTQ+ non-profit organizations from their mission statements"
+author: "Sebastián Rojas Cabal"
+date: "2/25/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The procedure I propose in this memo is based on Robert Nielsen's *Deadly Clerics*. He describes his method in chapter 5: *Recognizing Jihadists from Their Writings.*
+
+**Goal**
+We want to distinguish anti-LGBTQ+ organizations out of all non-profit organizations that submit a 990 Form. We will be using their mission statements as a way of recognizing them.
+
+**Steps**
+
+1. Define anti-LGBTQ+ ideology.
++ We need a canonical source of anti-LGBTQ+ ideology. Nielsen uses *The Jihadist's Bookbag*. We need a similar corpus of documents that potentially "showcase" anti-LGBTQ+ ideology. **Something that anti-LGBTQ+ orgs have done themselves?**
++ We also need another similar corpus for verification.
++ We also need a canonical source of non anti-LGBTQ+ ideology. **Would these be pro-LGBTQ+ or just a general sample of "neutral" organizations?**
+
+2. Use these two corpora to train a model. A naive Bayes classifier (or something better, but that's what Nielsen uses) will produce an **anti-LGBTQ+ score**. This essentially alludes to the likelihood that a word *would* be in an anti-LBTQ+ text or not.
+
+3. Run the model on the mission statements.
+
+4. Verify.
++ To verify, we are going to need some materials:
++ the Democracy Now and SLP lists could work to check for miss-classifications.
+
+**Things to consider**
+
++ Communication in mission statements is strategically deceitful. That is, **if non-profits have an incentive to escape recognition through their mission statements, then it is likely that they do not use a lot of discriminating words.**
+
++ If there is little use of discriminating words, the bag of words approach won't work.
+
++ What are our points of comparison: anti vs pro? anti vs non-anti?
+

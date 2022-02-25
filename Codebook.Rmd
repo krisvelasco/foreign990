@@ -1,0 +1,25 @@
+---
+title: "Codebook"
+author: "Sebastián Rojas Cabal"
+date: "2/25/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Last updated: Feb. 4, 2022 by Sebastián
+
+ein: Employer identification number.  
+
+object_id: Not unique for all observations. Seems to denote a “batch” of uploads from the IRS to Amazon Web Services. 
+
+Observations were matched by combining ein and object_id, there might be some duplicates. 
+
+
+fiscal_year: The year for which Form 990 was submitted. Based on RtrnHdr_TxPrdEndDt. 
+
+FileTs: The time (24 hour format) at which the form was submitted. We use this variable to restrict our sample to the most recent submission. Based on RtrnHdr_RtrnTs. 
+
+

@@ -18,11 +18,9 @@ library(readxl)
 #--------------------------------------------------------
 
 #--------------------------------------------------------
-# Importing F990 data
+# Importing Schedule I data
 #--------------------------------------------------------
-# -------------------------
-#   Return Header
-# -------------------------
+# Part 1
 sched_i_1 <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/sched_i_i.csv") %>%
   mutate(grants_records_kept = case_when(
     GrntRcrdsMntndInd == "0" ~ 0,
@@ -31,9 +29,14 @@ sched_i_1 <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/sc
     GrntRcrdsMntndInd == "true" ~ 1
   )) # created a new variable to standardize values in the dummy variable showing whether or not the orgs keeps records of its grants
 
+# Part 2. Grants to Domestic Organizations. Total number and type of orgs receiving grants.
 sched_i_2 <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/sched_i_ii.csv")
-sched_i_individ_grants <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/sched_i_individ_grants.csv")
+
+# Part 2. Grants to Domestic Organizations. Information on grants/recipients.
 sched_i_recipients <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/sched_i_recipient.csv")
+
+# Part 3. Grants to Domestic Individuals.
+sched_i_individ_grants <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/sched_i_individ_grants.csv")
 
 # part 1: whether or not the org keeps a record of who it gives grants to
 # part 2: total number of grant-receiving orgs that are section 501(c)(3), government; or other.
@@ -69,40 +72,4 @@ sched_i_recipients <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from On
   # VltnMthdUsdDsc = Part 3. (e) Method of valuation (book, FMV, appraisal, other)
   # NnCshAssstncDsc = Part 3. (f) Description of noncash assistance.
 #----
-
-rtrn990 <- filter(rtrn, RtrnHdr_RtrnCd == 990) %>%
-  rename(
-    rtrn_id = id,
-    rtrn_timestmp = RtrnHdr_RtrnTs,
-    rtrn_txyrbegin = RtrnHdr_TxPrdBgnDt,
-    rtrn_txyrend = RtrnHdr_TxPrdEndDt,
-    rtrn_form = RtrnHdr_RtrnCd,
-    rtrn_EINfiler = Flr_EIN,
-    rtrn_name1 = BsnssNm_BsnssNmLn1Txt,
-    rtrn_name2 = BsnssNm_BsnssNmLn2Txt,
-    rtrn_USaddrs1 = USAddrss_AddrssLn1Txt,
-    rtrn_USaddrs2 = USAddrss_AddrssLn2Txt,
-    rtrn_state = USAddrss_SttAbbrvtnCd,
-    rtrn_county = USAddrss_CtyNm,
-    rtrn_zip = USAddrss_ZIPCd) %>%
-  mutate(ein_rtrn = ein,
-         object_id_rtrn = object_id) %>%
-  select(ein, object_id, rtrn_id, ein_rtrn, object_id_rtrn,
-         rtrn_timestmp,
-         rtrn_txyrbegin,
-         rtrn_txyrend,
-         rtrn_form,
-         rtrn_EINfiler,
-         rtrn_name1,
-         rtrn_name2,
-         rtrn_USaddrs1,
-         rtrn_USaddrs2,
-         rtrn_state,
-         rtrn_county,
-         rtrn_zip)  %>%
-  rename(rtrn_txyrbgndt = rtrn_txyrbegin,
-         rtrn_txyrenddt = rtrn_txyrend) %>%
-  mutate(rtrn_txyrstart = year(rtrn_txyrbgndt),
-         rtrn_txyrend = year(rtrn_txyrenddt)) %>%
-  relocate(rtrn_txyrstart, rtrn_txyrend, .before = rtrn_txyrbgndt)
 # -------------------------

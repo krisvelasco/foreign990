@@ -15,6 +15,7 @@
 library(tidyverse)
 library(lubridate)
 library(readxl)
+library(stringr)
 #--------------------------------------------------------
 
 #--------------------------------------------------------
@@ -22,8 +23,10 @@ library(readxl)
 #--------------------------------------------------------
 # List of knwon anti-LGBTQ+ nonprofits and their EINs
 antilgbt <- read_excel("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/anti_lgbtq_eins_20220422.xlsx") %>%
-  rename(name_anti_list = Organization) %>%
-  mutate(ein = as.numeric(ein))
+  rename(name_anti_list = Organization,
+         ein_char = ein) %>%
+  mutate(ein_char = str_trim(ein_char),
+         ein = as.numeric(ein_char))
 
 # Part 1
 sched_i_1 <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/sched_i_i.csv") %>%
@@ -38,7 +41,8 @@ sched_i_1 <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/sc
 sched_i_2 <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/sched_i_ii.csv")
 
 # Part 2. Grants to Domestic Organizations. Information on grants/recipients.
-sched_i_recipients <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/sched_i_recipient.csv")
+sched_i_recipients <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/sched_i_recipient.csv") %>%
+  mutate(ein_char = as.character(ein))
 
 # Part 3. Grants to Domestic Individuals.
 sched_i_individ_grants <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/sched_i_individ_grants.csv")
@@ -83,8 +87,94 @@ sched_i_individ_grants <- read_csv("/Volumes/Google Drive/My Drive/F990/Data fro
 # Join operations to retrieve information on nonprofits that have received grants from known anti-LGBTQ+ nonprofits
 # -------------------------
 
-recipients_anti <- semi_join(antilgbt, sched_i_recipients,
+granting_anti_orgs <- semi_join(antilgbt, sched_i_recipients,
                              by = "ein")
+granting_vec <- granting_anti_orgs$ein
+
+#----
+# Grant recipients from list of known anti-LGBTQ+ orgs
+#   We will call this list of recipients "recipients1"
+#----
+recipients1 <- sched_i_recipients %>%
+  filter(ein %in% granting_vec) %>%
+  select(
+    ein,
+    RcpntBsnssNm_BsnssNmLn1Txt,
+    RcpntBsnssNm_BsnssNmLn2Txt,
+    RcpntTbl_RcpntEIN,
+    RcpntTbl_CshGrntAmt,
+    RcpntTbl_NnCshAssstncAmt,
+    RcpntTbl_PrpsOfGrntTxt,
+    USAddrss_CtyNm,
+    USAddrss_SttAbbrvtnCd
+  ) %>%
+  mutate(recipients_from = 0
+  ) %>%
+  select(
+    RcpntTbl_RcpntEIN,
+    RcpntBsnssNm_BsnssNmLn1Txt,
+    recipients_from
+  ) %>%
+  rename(
+    ein = RcpntTbl_RcpntEIN,
+    name = RcpntBsnssNm_BsnssNmLn1Txt
+  ) %>%
+  distinct() %>%
+  drop_na()
+
+# Check for NAs in data frame
+recipients1 %>% summarise(across(everything(), ~ sum(is.na(.)))) # check where are we have a lot of NAs
+  # Given that for the 4,892 there are no values in the "Foreign Address" columns, I will drop those.
+#----
+#----
+# Grant recipients from orgs that received grants from known anti-LGBTQ+ orgs
+#   We will call them "recipients2"
+#----
+
+r1_granting_orgs <- semi_join(recipients1, sched_i_recipients,
+                                by = "ein")
+granting_vec1 <- r1_granting_orgs$ein
+
+recipients2 <- sched_i_recipients %>%
+  filter(ein %in% granting_vec1) %>%
+  select(
+    ein,
+    RcpntBsnssNm_BsnssNmLn1Txt,
+    RcpntBsnssNm_BsnssNmLn2Txt,
+    RcpntTbl_RcpntEIN,
+    RcpntTbl_CshGrntAmt,
+    RcpntTbl_NnCshAssstncAmt,
+    RcpntTbl_PrpsOfGrntTxt,
+    USAddrss_CtyNm,
+    USAddrss_SttAbbrvtnCd
+  ) %>%
+  mutate(recipients_from = 1
+  ) %>%
+  select(
+    RcpntTbl_RcpntEIN,
+    RcpntBsnssNm_BsnssNmLn1Txt,
+    recipients_from
+  ) %>%
+  rename(
+    ein = RcpntTbl_RcpntEIN,
+    name = RcpntBsnssNm_BsnssNmLn1Txt
+  ) %>%
+  distinct() %>%
+  drop_na()
+
+# How many new candidate orgs?
 
 
+#----
+# How many new candidate organizations?
+#----
+antilgbt_candidates <- bind_rows(recipients1, recipients2) %>%
+  distinct(ein, name) %>%
+  anti_join(antilgbt,
+            by = "ein")
+  # this data will have duplicate values for EIN-name combinations.
 
+#----
+# Exporting the data
+#----
+write_csv(antilgbt_candidates, "/Volumes/Google Drive/My Drive/F990/Data from OneDrive/anti_lgbtq_candidates_20220422.csv")

@@ -20,7 +20,12 @@ library(readxl)
 #--------------------------------------------------------
 # Importing Schedule I data
 #--------------------------------------------------------
-# Part 11
+# List of knwon anti-LGBTQ+ nonprofits and their EINs
+antilgbt <- read_excel("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/anti_lgbtq_eins_20220422.xlsx") %>%
+  rename(name_anti_list = Organization) %>%
+  mutate(ein = as.numeric(ein))
+
+# Part 1
 sched_i_1 <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/sched_i_i.csv") %>%
   mutate(grants_records_kept = case_when(
     GrntRcrdsMntndInd == "0" ~ 0,
@@ -73,3 +78,13 @@ sched_i_individ_grants <- read_csv("/Volumes/Google Drive/My Drive/F990/Data fro
   # NnCshAssstncDsc = Part 3. (f) Description of noncash assistance.
 #----
 # -------------------------
+
+# -------------------------
+# Join operations to retrieve information on nonprofits that have received grants from known anti-LGBTQ+ nonprofits
+# -------------------------
+
+recipients_anti <- semi_join(antilgbt, sched_i_recipients,
+                             by = "ein")
+
+
+

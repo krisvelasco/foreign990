@@ -20,7 +20,7 @@ library(readxl)
 #--------------------------------------------------------
 # Importing Schedule I data
 #--------------------------------------------------------
-# Part 1
+# Part 11
 sched_i_1 <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/sched_i_i.csv") %>%
   mutate(grants_records_kept = case_when(
     GrntRcrdsMntndInd == "0" ~ 0,

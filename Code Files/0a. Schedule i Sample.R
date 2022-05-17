@@ -4,7 +4,7 @@
 # This file uses Schedule I from Form 990
 # to compile a list of anti-LGBTQ+ non profit organizations.
 
-#Last updated: April 21 by Sebastian Rojas Cabal
+#Last updated: May 16 by Sebastian Rojas Cabal
 # NOTE: On Feb 16, I changed one of the last filters such that
 # there is no "bottom" year filter. Filters can then be done with plots, etc
 
@@ -22,34 +22,34 @@ library(stringr)
 # Importing Schedule I data
 #--------------------------------------------------------
 # List of knwon anti-LGBTQ+ nonprofits and their EINs
-antilgbt <- read_excel("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/anti_lgbtq_eins_20220422.xlsx") %>%
+antilgbt <- read_excel("/Volumes/GoogleDrive/My Drive/F990/Data from OneDrive/anti_lgbtq_eins_20220422.xlsx") %>%
   rename(name_anti_list = Organization,
          ein_char = ein) %>%
   mutate(ein_char = str_trim(ein_char),
          ein = as.numeric(ein_char))
 
 # Part 1
-sched_i_1 <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/sched_i_i.csv") %>%
-  mutate(grants_records_kept = case_when(
-    GrntRcrdsMntndInd == "0" ~ 0,
-    GrntRcrdsMntndInd == "false" ~ 0,
-    GrntRcrdsMntndInd == "1" ~ 1,
-    GrntRcrdsMntndInd == "true" ~ 1
-  )) # created a new variable to standardize values in the dummy variable showing whether or not the orgs keeps records of its grants
+# sched_i_1 <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/sched_i_i.csv") %>%
+#   mutate(grants_records_kept = case_when(
+#     GrntRcrdsMntndInd == "0" ~ 0,
+#     GrntRcrdsMntndInd == "false" ~ 0,
+#     GrntRcrdsMntndInd == "1" ~ 1,
+#     GrntRcrdsMntndInd == "true" ~ 1
+#   )) # created a new variable to standardize values in the dummy variable showing whether or not the orgs keeps records of its grants
 
 # Part 2. Grants to Domestic Organizations. Total number and type of orgs receiving grants.
-sched_i_2 <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/sched_i_ii.csv")
+# sched_i_2 <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/sched_i_ii.csv")
 
 # Part 2. Grants to Domestic Organizations. Information on grants/recipients.
-sched_i_recipients <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/sched_i_recipient.csv") %>%
+sched_i_recipients <- read_csv("/Volumes/GoogleDrive/My Drive/F990/Data from OneDrive/sched_i_recipient.csv") %>%
   mutate(ein_char = as.character(ein))
 
 # Part 3. Grants to Domestic Individuals.
-sched_i_individ_grants <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/sched_i_individ_grants.csv")
+# sched_i_individ_grants <- read_csv("/Volumes/Google Drive/My Drive/F990/Data from OneDrive/sched_i_individ_grants.csv")
 
 # part 1: whether or not the org keeps a record of who it gives grants to
 # part 2: total number of grant-receiving orgs that are section 501(c)(3), government; or other.
-# recipients:
+# par 3: individual grants.
 #------
   # RcpntBsnssNm_BsnssNmLn1Txt = Part 2. (a) Name and address of organization or government. Line 1
   # RcpntBsnssNm_BsnssNmLn2Txt = Part 2. (a) Name and address of organization or government. Line 2
@@ -162,19 +162,31 @@ recipients2 <- sched_i_recipients %>%
   distinct() %>%
   drop_na()
 
-# How many new candidate orgs?
-
-
 #----
-# How many new candidate organizations?
+# List of candidate organizations on April 22. Included up to 2nd-order ties (orgs receiving money from orgs receiving money)
 #----
-antilgbt_candidates <- bind_rows(recipients1, recipients2) %>%
+antilgbt_candidates_2 <- bind_rows(recipients1, recipients2) %>%
   distinct(ein, name) %>%
   anti_join(antilgbt,
-            by = "ein")
+            by = "ein") %>%
+  distinct(ein, name)
   # this data will have duplicate values for EIN-name combinations.
+
+#----
+# List of candidate organizations on May 16. Includes up to 1st-order ties (orgs receiving money from known anti-lgbtq+ orgs)
+#----
+antilgbt_candidates_1 <- recipients1 %>%
+  distinct(ein, name) %>%
+  anti_join(antilgbt,
+            by = "ein") %>%
+  distinct(ein, name)
+# this data will have duplicate EIN values as well as org names. It contains all unique EIN-name combinations.
+#----
 
 #----
 # Exporting the data
 #----
+# 2nd order ties
 write_csv(antilgbt_candidates, "/Volumes/Google Drive/My Drive/F990/Data from OneDrive/anti_lgbtq_candidates_20220422.csv")
+# 1st order ties
+write_csv(antilgbt_candidates, "/Volumes/GoogleDrive/My Drive/F990/Data from OneDrive/anti_lgbtq_candidates_20220516.csv")

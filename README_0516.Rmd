@@ -10,7 +10,30 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 # Last update by: Sebastián
 
-## Monday, May 16
+## Tuesday, May 17
+* Continued working on the first draft of code for implementing synthetic controls. See below.
+
+### First draft of code for implementing synthetic controls with staggered adoption.
+* Sample consists of 2,061 organizations. These are known anti-LGBTQ+ nonprofits as well as organizations that have received money from them according to Schedule I data. Duplicated EINs and names were dropped. More info below.
+  + 620 known anti-LGBTQ+ organizations. I removed duplicate names and EINs from the original list of 657 organizations.
+  + 1,446 presumed anti-LGBTQ+ organizations. These are orgs that received money from known anti-LGBTQ nonprofits. I removed duplicate names and EINs from the original list of 1,795 organizations.
+* The analytical sample merges four sources of data:
+  + Form 990 return headers, parts 0 and part 9.
+  + The list of candidate anti-LGBTQ+ orgs described above.
+  + The **sample is restricted only to anti-LGBTQ+ orgs**. Synthetic control methods compare orgs to themselves before the policy change.
+* Year of adoption was year when state legislature legalized marriage equality.
+* Outcome is real 2013 dollars.
+* Tax year: end date of tax year in the tax return.
+* WE MIGHT HAVE A PROBLEM BECAUSE WE DO NOT HAVE THE TAX RETURNS FOR THE SAME ORGANIZATIONS FOR ALL YEARS. WE DO NOT WHAT HAPPENS BEFORE. We don't have that for most organizations.
+
+### Recap about where samples come from.
+We used the information on the Schedule I forms we have to come up with:
+
+* We had an initial list of 657 known anti-LGBTQ+ orgs Kristopher built based on his subject-area expertise. There are some duplicate EINs and names in this list.
+* List of 1,795 first-order ties. These are orgs that have received money from known anti-LGBTQ+ orgs according to all our Schedule I forms. This file is called **anti_lgbtq_candidates_20220516.csv**. There are some duplicate EINs and names in this list.
+* List of 162,547 second-order ties. These are orgs that have received money from orgs that received money from known anti-LGBTQ+ orgs according to all our Schedule I forms. This file is called **anti_lgbtq_candidates_20220422.csv**. There are some duplicate EINs and names in this list.## Monday, May 16
 * Created a new ReadMe file to keep track of changes made to the project.
 
-
+## Monday, May 16
+* Created a new ReadMe file to keep track of changes made to the project.
+* Worked on the first draft of code for implementing SCM with staggered adoption. See above.

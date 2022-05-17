@@ -257,7 +257,7 @@ rtrn09_anti <- full_join(join_rtrn09, antilgbt, by = c("ein")) %>%
     ),
     anti_factor = as.factor(anti_factor)
   )
-  #--------------------------
+#--------------------------
   
 #--------------------------------------------------------
 # Cleaning the data

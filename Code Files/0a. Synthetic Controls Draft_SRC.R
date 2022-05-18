@@ -287,30 +287,31 @@ dups <- joindf %>% count(ein, tax_year) %>%
   group_by(ein, tax_year) %>%
   select(ein, tax_year, dup)
 
-# we'll call our data frame frgnxpns
-frgnxpns <- inner_join(joindf, dups, by = c("ein", "tax_year"))
+# Adding them to the joint data
+joindf_dups <- inner_join(joindf, dups, by = c("ein", "tax_year"))
 #--------------------------
 #--------------------------
 # Cleaning some relevant variables
 #-------------------------- 
+# When Total Functional Expenses = NA, drop. There are 917 such NAs.
+# When Total Foreign Expenses OR Grants = NA, assume = 0.
+# Assume all negative values are positives with a wrong side. Recode *(-1)
+# Dropping all cases when Functional Expenses = 0.
+#   The analysis will be in constant (real) 2013 dollars.
+#   how to calculate:
+#   (money in year X)/((CPI in 2013)/(CPI in that year))
+#   CPIs from BLS: (https://www.bls.gov/cpi/tables/supplemental-files/historical-cpi-u-202203.pdf)
+#   Method from making it current dollars (https://www.bls.gov/cpi/factsheets/cpi-math-calculations.pdf)
+#   2013 = 232.957
+#   2014 = 236.736
+#   2015 = 237.017
+#   2016 = 240.007
+#   2017 = 245.120
+#   2018 = 251.107
+#   2019 = 255.657
+#   2020 = 258.811
 
-# assume all NAs to be = 0 dollars spent abroad.
-# assume all negative values are positives with a wrong side
-# constant (real) 2013 dollars for the analysis
-# how to calculate:
-# (money in year X)/((CPI in 2013)/(CPI in that year))
-# CPIs from BLS: (https://www.bls.gov/cpi/tables/supplemental-files/historical-cpi-u-202203.pdf)
-# Method from making it current dollars (https://www.bls.gov/cpi/factsheets/cpi-math-calculations.pdf)
-# 2013 = 232.957
-# 2014 = 236.736
-# 2015 = 237.017
-# 2016 = 240.007
-# 2017 = 245.120
-# 2018 = 251.107
-# 2019 = 255.657
-# 2020 = 258.811
-
-frgnxpns <- frgnxpns %>%
+frgnxpns <- joindf_dups %>%
   mutate(
     clean_totalExpenses = case_when(
       pt9_totalFnctnlExpns < 0 ~ pt9_totalFnctnlExpns*(-1),
@@ -320,31 +321,35 @@ frgnxpns <- frgnxpns %>%
       pt9_totalFrgnGrnts < 0 ~ pt9_totalFrgnGrnts*(-1),
       is.na(pt9_totalFrgnGrnts) == TRUE ~ 0,
       TRUE ~ pt9_totalFrgnGrnts
+    ),
+    clean_totalFrgnSrvs = case_when(
+      pt9_prgrmSrcvsAmtFrgnGrnts < 0 ~ pt9_prgrmSrcvsAmtFrgnGrnts*(-1),
+      is.na(pt9_prgrmSrcvsAmtFrgnGrnts) == TRUE ~ 0,
+      TRUE ~ pt9_prgrmSrcvsAmtFrgnGrnts
     )) %>%
   mutate(clean_FrgnExpnsPctg = clean_totalFrgnGrnts/clean_totalExpenses,
          clean_FrgnExpnsPctg = case_when(
            is.na(clean_FrgnExpnsPctg) == TRUE ~ 0,
            TRUE ~ clean_FrgnExpnsPctg
          )) %>%
-  group_by(ein, name)
-
-# Making it a wide data set so dollars can be adjusted to
-frgnxpns_realUSD <- frgnxpns %>%
-  pivot_wider(
-    names_from = tax_year,
-    values_from = clean_totalFrgnGrnts,
-    names_prefix = "grants_"
-  ) %>%
+  arrange(ein, name, tax_year) %>%
+  filter(!is.na(clean_totalExpenses),
+         clean_totalExpenses>0) %>%
   select(
-    ein,
-    anti_lgbtq,
-    anti_factor,
-    dup,
-    p0_state,
-    rtrn_state,
-    
+    ein, object_id, tax_year, name,
+    dup, pt0_state, starts_with("rtrn"), starts_with("clean")
+  ) %>%
+  rename(
+    totalXpns = clean_totalExpenses,
+    frgnXpns = clean_totalFrgnGrnts,
+    frgnSrvcs = clean_totalFrgnSrvs,
+    pctgFrgnXpns = clean_FrgnExpnsPctg
   )
 
+  
+  
+  
+  
 by_ein_name <- frgnxpns_realUSD %>%
   group_by(ein, name) %>% 
   tally()

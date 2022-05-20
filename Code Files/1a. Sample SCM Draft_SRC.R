@@ -291,7 +291,7 @@ dups <- joindf %>% count(ein, tax_year) %>%
 joindf_dups <- inner_join(joindf, dups, by = c("ein", "tax_year"))
 #--------------------------
 #--------------------------
-# Cleaning some relevant variables
+# Cleaning some relevant variables and adding new ones
 #-------------------------- 
 # When Total Functional Expenses = NA, drop. There are 917 such NAs.
 # When Total Foreign Expenses OR Grants = NA, assume = 0.
@@ -301,6 +301,8 @@ joindf_dups <- inner_join(joindf, dups, by = c("ein", "tax_year"))
 # The analysis will be in constant (real) 2013 dollars.
 #     CPIs from BLS: (https://www.bls.gov/cpi/tables/supplemental-files/historical-cpi-u-202203.pdf)
 #     Method from making it current dollars (https://www.bls.gov/cpi/factsheets/cpi-math-calculations.pdf)
+# Adding the year marriage equality was passed in each state.
+#     Source: https://www.lgbtmap.org/equality-maps/marriage_relationship_laws
 
 frgnxpns <- joindf_dups %>%
   mutate(
@@ -408,69 +410,67 @@ frgnxpns <- joindf_dups %>%
       rtrn_state == "WI" ~ 2014,
       rtrn_state == "WY" ~ 2014
     ),
-    yearMrgEq_rtrn = case_when(
-      rtrn_state == "AL" ~ 2015,
-      rtrn_state == "AK" ~ 2014,
-      rtrn_state == "AZ" ~ 2014,
-      rtrn_state == "AR" ~ 2015,
-      rtrn_state == "AS" ~ 2014,
-      rtrn_state == "CA" ~ 2013,
-      rtrn_state == "CO" ~ 2014,
-      rtrn_state == "CT" ~ 2008,
-      rtrn_state == "DE" ~ 2013,
-      rtrn_state == "DC" ~ 2010,
-      rtrn_state == "FL" ~ 2015,
-      rtrn_state == "GA" ~ 2015,
-      rtrn_state == "GU" ~ 2015,
-      rtrn_state == "HI" ~ 2013,
-      rtrn_state == "ID" ~ 2014,
-      rtrn_state == "IL" ~ 2013,
-      rtrn_state == "IN" ~ 2014,
-      rtrn_state == "IA" ~ 2009,
-      rtrn_state == "KS" ~ 2015,
-      rtrn_state == "KY" ~ 2015,
-      rtrn_state == "LA" ~ 2015,
-      rtrn_state == "ME" ~ 2012,
-      rtrn_state == "MD" ~ 2012,
-      rtrn_state == "MA" ~ 2004,
-      rtrn_state == "MI" ~ 2015,
-      rtrn_state == "MN" ~ 2013,
-      rtrn_state == "MS" ~ 2015,
-      rtrn_state == "MO" ~ 2015,
-      rtrn_state == "MT" ~ 2014,
-      rtrn_state == "NE" ~ 2015,
-      rtrn_state == "NV" ~ 2014,
-      rtrn_state == "NH" ~ 2010,
-      rtrn_state == "NJ" ~ 2013,
-      rtrn_state == "NM" ~ 2013,
-      rtrn_state == "NY" ~ 2011,
-      rtrn_state == "NC" ~ 2014,
-      rtrn_state == "ND" ~ 2015,
-      rtrn_state == "CM" ~ 2015,
-      rtrn_state == "OH" ~ 2015,
-      rtrn_state == "OK" ~ 2014,
-      rtrn_state == "OR" ~ 2014,
-      rtrn_state == "PA" ~ 2014,
-      rtrn_state == "PR" ~ 2015,
-      rtrn_state == "RI" ~ 2013,
-      rtrn_state == "SC" ~ 2014,
-      rtrn_state == "SD" ~ 2015,
-      rtrn_state == "TN" ~ 2015,
-      rtrn_state == "TX" ~ 2015,
-      rtrn_state == "UT" ~ 2015,
-      rtrn_state == "VT" ~ 2014,
-      rtrn_state == "VA" ~ 2009,
-      rtrn_state == "VI" ~ 2014,
-      rtrn_state == "WA" ~ 2012,
-      rtrn_state == "WV" ~ 2014,
-      rtrn_state == "WI" ~ 2014,
-      rtrn_state == "WY" ~ 2014
+    yearMrgEq_pt0 = case_when(
+      pt0_state == "AL" ~ 2015,
+      pt0_state == "AK" ~ 2014,
+      pt0_state == "AZ" ~ 2014,
+      pt0_state == "AR" ~ 2015,
+      pt0_state == "AS" ~ 2014,
+      pt0_state == "CA" ~ 2013,
+      pt0_state == "CO" ~ 2014,
+      pt0_state == "CT" ~ 2008,
+      pt0_state == "DE" ~ 2013,
+      pt0_state == "DC" ~ 2010,
+      pt0_state == "FL" ~ 2015,
+      pt0_state == "GA" ~ 2015,
+      pt0_state == "GU" ~ 2015,
+      pt0_state == "HI" ~ 2013,
+      pt0_state == "ID" ~ 2014,
+      pt0_state == "IL" ~ 2013,
+      pt0_state == "IN" ~ 2014,
+      pt0_state == "IA" ~ 2009,
+      pt0_state == "KS" ~ 2015,
+      pt0_state == "KY" ~ 2015,
+      pt0_state == "LA" ~ 2015,
+      pt0_state == "ME" ~ 2012,
+      pt0_state == "MD" ~ 2012,
+      pt0_state == "MA" ~ 2004,
+      pt0_state == "MI" ~ 2015,
+      pt0_state == "MN" ~ 2013,
+      pt0_state == "MS" ~ 2015,
+      pt0_state == "MO" ~ 2015,
+      pt0_state == "MT" ~ 2014,
+      pt0_state == "NE" ~ 2015,
+      pt0_state == "NV" ~ 2014,
+      pt0_state == "NH" ~ 2010,
+      pt0_state == "NJ" ~ 2013,
+      pt0_state == "NM" ~ 2013,
+      pt0_state == "NY" ~ 2011,
+      pt0_state == "NC" ~ 2014,
+      pt0_state == "ND" ~ 2015,
+      pt0_state == "CM" ~ 2015,
+      pt0_state == "OH" ~ 2015,
+      pt0_state == "OK" ~ 2014,
+      pt0_state == "OR" ~ 2014,
+      pt0_state == "PA" ~ 2014,
+      pt0_state == "PR" ~ 2015,
+      pt0_state == "RI" ~ 2013,
+      pt0_state == "SC" ~ 2014,
+      pt0_state == "SD" ~ 2015,
+      pt0_state == "TN" ~ 2015,
+      pt0_state == "TX" ~ 2015,
+      pt0_state == "UT" ~ 2015,
+      pt0_state == "VT" ~ 2014,
+      pt0_state == "VA" ~ 2009,
+      pt0_state == "VI" ~ 2014,
+      pt0_state == "WA" ~ 2012,
+      pt0_state == "WV" ~ 2014,
+      pt0_state == "WI" ~ 2014,
+      pt0_state == "WY" ~ 2014
     )
   )
   
-
-
-rtrn_state == "KY"#   how to calculate:
+#   how to calculate real 2013 dollars:
 #   (money in year X)/((CPI in 2013)/(CPI in that year))
 #   CPIs from BLS: (https://www.bls.gov/cpi/tables/supplemental-files/historical-cpi-u-202203.pdf)
 #   Method from making it current dollars (https://www.bls.gov/cpi/factsheets/cpi-math-calculations.pdf)
@@ -482,6 +482,15 @@ rtrn_state == "KY"#   how to calculate:
 #   2018 = 251.107
 #   2019 = 255.657
 #   2020 = 258.811
+#--------------------------
+#--------------------------
+# Exporting the data
+#-------------------------- 
+write_csv(frgnxpns, "/Volumes/GoogleDrive/My Drive/F990/Data from OneDrive/scm_sample_draft_220520.csv")
+#--------------------------
+
+####----------------- FILE ENDS HERE. THE REST IS STUFF.
+
 
 
 

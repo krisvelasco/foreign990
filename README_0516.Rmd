@@ -12,9 +12,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Monday, May 16 - Friday, May 20
 * Created a new ReadMe file to keep track of changes made to the project.
-* Worked on the first draft of code for implementing SCM with staggered adoption. See below
+* Worked on the first draft of code for implementing SCM with staggered adoption. See below.
+* **MAIN TAKEAWAY FROM MODEL:** Code for the model has been written. Implementation should be simple yet, we cannot run the model right now because we do not have enough expense data previous to the policy change. Our data begins in 2013 and most states passed legislation around 2012.
 
 ### First draft of code for implementing synthetic controls with staggered adoption.
+* Final sample for SCM consists of 608 organizations. These are organizations for which we have expense data continously from 2014 to 2018.
 * Analytical sample consists of 1,144 organizations (unique EINs in the data). I removed the following observations. File available via One Drive. Name: **scm_sample_draft_220520.csv**.
   + All cases when Functional Expenses were 0.
   + Keeping only the most recent tax filing for each tax year, according to the return time stamp.
@@ -29,9 +31,6 @@ knitr::opts_chunk$set(echo = TRUE)
 * Outcome is real 2013 dollars.
 * Tax year: end date of tax year in the tax return.
 * I chose the year marriage (not civil unions) were legalized. Data from: https://www.lgbtmap.org/equality-maps/marriage_relationship_laws
-
-### Notes on SCM implementation
-* WE MIGHT HAVE A PROBLEM BECAUSE WE DO NOT HAVE THE TAX RETURNS FOR THE SAME ORGANIZATIONS FOR ALL YEARS. WE DO NOT WHAT HAPPENS BEFORE. We don't have that for most organizations.
 
 ### Recap about where samples come from.
 We used the information on the Schedule I forms we have to come up with:

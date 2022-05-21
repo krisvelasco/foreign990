@@ -1,14 +1,17 @@
 ---
 title: "Read Me"
-author: "Kristopher Velasco and Sebastián Rojas Cabal"
+author: "Kristopher Velasco and Sebastian Rojas Cabal"
 date: "2/25/2022"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-# Last update by: Sebastián
+# Last update by: Sebastian
 
 ## Monday, May 16 - Friday, May 20
 * Created a new ReadMe file to keep track of changes made to the project.

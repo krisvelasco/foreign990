@@ -13,6 +13,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 # Last update by: Sebastian
 
+## Wednesday, May 31
+* Descriptive plots based on the sample used for SCM.
+
 ## Monday, May 16 - Friday, May 20
 * Created a new ReadMe file to keep track of changes made to the project.
 * Worked on the first draft of code for implementing SCM with staggered adoption. See below.

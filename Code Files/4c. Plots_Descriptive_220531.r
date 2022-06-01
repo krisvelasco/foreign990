@@ -1,13 +1,15 @@
 ## Project: Nonprofit Foreign Expenditures
 
 ## Overview: 
-# This file uses the 'scm_sample_draft_310520.csv' data to produce
-# figures that show how much money do anti-LGBTQ+ non profits
-# spend abroad.
+# This file uses two data sets:
+#   anti_sample_220601.csv
+#   nonanti_sample_220601.csv
+# It plots figures that show how much money do anti-LGBTQ+ non profits
+# spend abroad compared to non-anti non profits.
 
 # These are exploratory visualizations.
 
-#Last updated: May 31, 2022 by Sebastian Rojas Cabal
+#Last updated: June 1, 2022 by Sebastian Rojas Cabal
 
 #--------------------------------------------------------
 # Preliminaries
@@ -21,10 +23,12 @@ library(stringr)
 #--------------------------------------------------------
 # Importing the data
 #--------------------------------------------------------
-frgnxpns <- read_csv("/Volumes/GoogleDrive/My Drive/F990/Data from OneDrive/scm_sample_draft_310520.csv") #%>%
+anti <- read_csv("/Users/srojascabal/Desktop/000_f990_data/anti_sample_220601.csv") %>%
+select(ein, tax_year, rtrn_state, frgnXpns_2013, totalXpns_2013)
 
-  filter(tax_year != "2021") %>%
-  select(ein, tax_year, rtrn_state, frgnXpns_2013, totalXpns_2013) %>%
+
+anti2 <- anti %>%
+select(ein, name, tax_year, rtrn_state, frgnXpns_2013, totalXpns_2013) %>%
   pivot_wider(
     values_from = c(frgnXpns_2013, totalXpns_2013),
     names_from = tax_year
@@ -32,7 +36,7 @@ frgnxpns <- read_csv("/Volumes/GoogleDrive/My Drive/F990/Data from OneDrive/scm_
   rename_at(vars(contains("_2013_")), ~str_remove(., "_2013_")) %>%
   select(-contains("2013"), -contains("2020"), -contains("2019")) %>%
   pivot_longer(
-    cols = -c("ein", "rtrn_state"),
+    cols = -c("ein", "name", "rtrn_state"),
     names_to = c("xpns_type", "tax_year"),
     names_pattern = "([A-Za-z]+)(\\d+)",
     values_to = "amount") %>%
@@ -48,6 +52,51 @@ frgnxpns <- read_csv("/Volumes/GoogleDrive/My Drive/F990/Data from OneDrive/scm_
       TRUE ~ frgnXpns)) %>%
   filter(
     totalXpns != 0) %>%
+  mutate(
+    frgnProp = frgnXpns/totalXpns,
+    tax_year = as.factor(tax_year)
+  ) %>%
+  na.omit() %>%
+  mutate(
+    anti = 1
+  )
+  
+anti %>%
+  select(everything()) %>%  # replace to your needs
+  summarise_all(funs(sum(is.na(.))))
+
+nonanti %>%
+  select(everything()) %>%  # replace to your needs
+  summarise_all(funs(sum(is.na(.))))
+
+nonanti <- read_csv("/Users/srojascabal/Desktop/000_f990_data/nonanti_sample_220601.csv") %>%
+  group_by(ein, tax_year) %>%
+  slice_min(rtrn_timestmp) %>%
+  select(ein, tax_year, rtrn_state, frgnXpns_2013, totalXpns_2013) %>%
+  na.omit() %>%
+  ungroup() %>%
+  mutate(
+    anti = 0
+  )
+  
+nonanti2 <- nonanti %>%
+mutate(row = row_number()) %>%
+  pivot_wider(
+    values_from = c(frgnXpns_2013, totalXpns_2013),
+    names_from = tax_year
+  ) %>%
+  rename_at(vars(contains("_2013_")), ~str_remove(., "_2013_")) %>%
+  select(-contains("2013"), -contains("2020"), -contains("2019"), -row) %>%
+  pivot_longer(
+    cols = -c("ein", "rtrn_state"),
+    names_to = c("xpns_type", "tax_year"),
+    names_pattern = "([A-Za-z]+)(\\d+)",
+    values_to = "amount") %>%
+  na.omit() %>%
+  pivot_wider(
+    id_cols = c("ein", "tax_year"),
+    values_from = "amount",
+    names_from = "xpns_type") %>%
   mutate(
     frgnProp = frgnXpns/totalXpns,
     tax_year = as.factor(tax_year)

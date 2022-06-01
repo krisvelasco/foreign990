@@ -13,8 +13,14 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 # Last update by: Sebastian
 
-## Wednesday, May 31
-* Descriptive plots based on the sample used for SCM.
+## Tuesday, May 31 - Wednesday, June 1
+* New samples for descriptive figures.
+* **FOR EASE OF DOWNLOAD AND DATA MANAGEMENT** the sample is divided into anti-LGBTQ+ nonprofits in one file and non-anti nonprofits in another one. They are named as follows:
+  + **anti_sample_220601.csv**.
+  + **nonanti_sample_220601.csv**.
+* Both data sets include a variable for foreign and total expenses in constant 2013 USD.
+* Both data sets are restricted for 2013-2020
+* Only the **anti** data set includes a variable for the year in which marriage equality became legalized in the state.
 
 ## Monday, May 16 - Friday, May 20
 * Created a new ReadMe file to keep track of changes made to the project.

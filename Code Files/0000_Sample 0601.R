@@ -678,8 +678,6 @@ nonanti_frgnxpns2 <- bind_rows(
   nonanti_frgnxpns2020_2
 )
 
-
-
 #   how to calculate real 2013 dollars:
 #   (money in year X)/((CPI in 2013)/(CPI in that year))
 #   CPIs from BLS: (https://www.bls.gov/cpi/tables/supplemental-files/historical-cpi-u-202203.pdf)
@@ -696,5 +694,6 @@ nonanti_frgnxpns2 <- bind_rows(
 #--------------------------
 # Exporting the data
 #-------------------------- 
-write_csv(frgnxpns, "/Users/srojascabal/Desktop/000_f990_data/scm_sample_draft_220601.csv")
+write_csv(anti_frgnxpns, "/Users/srojascabal/Desktop/000_f990_data/anti_sample_220601.csv")
+write_csv(nonanti_frgnxpns2, "/Users/srojascabal/Desktop/000_f990_data/nonanti_sample_220601.csv")
 #--------------------------

@@ -1,7 +1,7 @@
 ## Project: Nonprofit Foreign Expenditures
 
 ## Overview: 
-# This file uses the 'scm_sample_draft_220520.csv' data to produce
+# This file uses the 'scm_sample_draft_310520.csv' data to produce
 # figures that show how much money do anti-LGBTQ+ non profits
 # spend abroad.
 
@@ -21,18 +21,8 @@ library(stringr)
 #--------------------------------------------------------
 # Importing the data
 #--------------------------------------------------------
-frgnxpns <- read_csv("/Volumes/GoogleDrive/My Drive/F990/Data from OneDrive/scm_sample_draft_220520.csv") %>%
-  mutate(frgnXpns_2013 =
-           case_when(
-             tax_year == 2013 ~ frgnXpns/(232.957/232.957),
-             tax_year == 2014 ~ frgnXpns/(232.957/236.736),
-             tax_year == 2015 ~ frgnXpns/(232.957/237.017),
-             tax_year == 2016 ~ frgnXpns/(232.957/240.007),
-             tax_year == 2017 ~ frgnXpns/(232.957/245.120),
-             tax_year == 2018 ~ frgnXpns/(232.957/251.107),
-             tax_year == 2019 ~ frgnXpns/(232.957/255.657),
-             tax_year == 2020 ~ frgnXpns/(232.957/258.811)
-           )) %>%
+frgnxpns <- read_csv("/Volumes/GoogleDrive/My Drive/F990/Data from OneDrive/scm_sample_draft_310520.csv") #%>%
+
   filter(tax_year != "2021") %>%
   select(ein, tax_year, rtrn_state, frgnXpns_2013, totalXpns_2013) %>%
   pivot_wider(

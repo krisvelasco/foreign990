@@ -1,9 +1,11 @@
 ## Project: Nonprofit Foreign Expenditures
 
 ## Overview: 
-# Implementing models with synthetic controls. First draft.
+#   Sample of anti-LGBTQ+ and non anti-LGTBQ+ for analysis.
 
-#Last updated: May 20 by Sebastian Rojas Cabal
+## Last updated: June 1st by Sebastian Rojas Cabal
+#   Sample of anti nonprofits is based on list of known nonprofits as well as organizations to which those
+#   known nonprofits have donated money to.
 
 #--------------------------------------------------------
 # Preliminaries
@@ -21,7 +23,7 @@ library(stringr)
 #   List of anti-LGBTQ+ orgs
 # -------------------------
 # List of known anti-LGBTQ+ nonprofits. 
-orgs1 <- read_excel("/Volumes/GoogleDrive/My Drive/F990/Data from OneDrive/anti_lgbtq_eins_20220422.xlsx") %>%
+orgs1 <- read_excel("/Users/srojascabal/Desktop/000_f990_data/anti_lgbtq_eins_20220422.xlsx") %>%
   rename(name = Organization,
          ein_char = ein) %>%
   mutate(ein_char = str_trim(ein_char),
@@ -30,7 +32,7 @@ orgs1 <- read_excel("/Volumes/GoogleDrive/My Drive/F990/Data from OneDrive/anti_
   distinct(ein, .keep_all = TRUE) %>%
   distinct(name, .keep_all = TRUE)
 # List of first-order ties to known anti-LGBTQ+ nonprofits.
-orgs2 <- read_csv("/Volumes/GoogleDrive/My Drive/F990/Data from OneDrive/anti_lgbtq_candidates_20220516.csv") %>%
+orgs2 <- read_csv("/Users/srojascabal/Desktop/000_f990_data/anti_lgbtq_candidates_20220516.csv") %>%
   distinct(ein, .keep_all = TRUE) %>%
   distinct(name, .keep_all = TRUE)
 # Binding all candidate anti-LGBTQ+ orgs
@@ -45,7 +47,7 @@ orgs_all <- bind_rows(orgs1, orgs2) %>%
 # -------------------------
 #       Return Header of Form 990
 # -------------------------
-rtrn <- read_csv("/Volumes/GoogleDrive/My Drive/F990/Data from OneDrive/return_header.csv")
+rtrn <- read_csv("/Users/srojascabal/Desktop/000_f990_data/return_header.csv")
 # these are the forms submissions with metadata from Amazon Web Services/IRS.
 #   length(unique(rtrn$id))/nrow(rtrn) # all ids are unique
 #   length(unique(rtrn$object_id))/nrow(rtrn) # object_ids are not unique. Parsing problem?
@@ -92,11 +94,10 @@ rtrn990 <- filter(rtrn, RtrnHdr_RtrnCd == 990) %>%
 # -------------------------
 #       Part 0 of Form 990
 # -------------------------
-part0 <- read_csv("/Volumes/GoogleDrive/My Drive/F990/Data from OneDrive/part_0.csv")
+part0 <- read_csv("/Users/srojascabal/Desktop/000_f990_data/part_0.csv")
 # the top of 990 form.
 # length(unique(part0$id))/nrow(part0) # all ids are unique
 # length(unique(part0$object_id))/nrow(part0) # object_ids are not unique. Parsing problem?
-
 part0 <- part0 %>%
   rename(
     pt0_name1 = DngBsnssAsNm_BsnssNmLn1Txt,
@@ -128,7 +129,9 @@ part0 <- part0 %>%
 #--------------------------
 #       Part 9 of Form 990
 #--------------------------
-part9 <- read_csv("/Volumes/GoogleDrive/My Drive/F990/Data from OneDrive/part_ix.csv") %>%
+part9 <- read_csv("/Users/srojascabal/Desktop/000_f990_data/part_ix.csv")
+
+part9 <- part9 %>%
   rename(
     pt9_id = id,
     pt9_totalFrgnGrnts = FrgnGrnts_TtlAmt,
@@ -267,7 +270,7 @@ rtrn09_anti <- full_join(join_rtrn09, orgs_all, by = c("ein")) %>%
 #   Selecting relevant variables from the merged data sets
 #--------------------------  
 # We will call the resulting data frame 'frgnxpns'
-# This data set includes both non-anti and anti_lgbtq orgs
+# This data set will only include anti_lgbtq orgs
 joindf <- rtrn09_anti %>%
   select(ein, object_id,
          tax_year, anti_lgbtq, anti_factor, name,
@@ -323,20 +326,23 @@ frgnxpns <- joindf_dups %>%
            is.na(clean_FrgnExpnsPctg) == TRUE ~ 0,
            TRUE ~ clean_FrgnExpnsPctg
          )) %>%
-  arrange(ein, name, tax_year) #%>%
+  arrange(ein, tax_year) %>%
   filter(!is.na(clean_totalExpenses),
          clean_totalExpenses>0) %>%
   select(
     ein, object_id, tax_year, name,
-    dup, pt0_state, starts_with("rtrn"), starts_with("clean")
+    dup, anti_lgbtq, anti_factor, pt0_state, starts_with("rtrn"), starts_with("clean")
   ) %>%
   rename(
     totalXpns = clean_totalExpenses,
     frgnXpns = clean_totalFrgnGrnts,
     frgnSrvcs = clean_totalFrgnSrvs,
     pctgFrgnXpns = clean_FrgnExpnsPctg
-  ) %>%
-  group_by(ein, tax_year, name) %>%
+  )
+
+anti_frgnxpns <- frgnxpns %>%
+  filter(anti_lgbtq == 1) %>%
+  group_by(ein, tax_year) %>%
   slice_min(rtrn_timestmp) %>%
   mutate(
     totalXpns_2013 =
@@ -349,6 +355,17 @@ frgnxpns <- joindf_dups %>%
         tax_year == 2018 ~ totalXpns/(232.957/251.107),
         tax_year == 2019 ~ totalXpns/(232.957/255.657),
         tax_year == 2020 ~ totalXpns/(232.957/258.811)
+      ),
+    frgnXpns_2013 =
+      case_when(
+        tax_year == 2013 ~ frgnXpns/(232.957/232.957),
+        tax_year == 2014 ~ frgnXpns/(232.957/236.736),
+        tax_year == 2015 ~ frgnXpns/(232.957/237.017),
+        tax_year == 2016 ~ frgnXpns/(232.957/240.007),
+        tax_year == 2017 ~ frgnXpns/(232.957/245.120),
+        tax_year == 2018 ~ frgnXpns/(232.957/251.107),
+        tax_year == 2019 ~ frgnXpns/(232.957/255.657),
+        tax_year == 2020 ~ frgnXpns/(232.957/258.811)
       ),
     yearMrgEq_rtrn = case_when(
       rtrn_state == "AL" ~ 2015,
@@ -466,8 +483,203 @@ frgnxpns <- joindf_dups %>%
       pt0_state == "WI" ~ 2014,
       pt0_state == "WY" ~ 2014
     )
-  )
-  
+  ) %>%
+  filter(tax_year < 2021)
+#--------
+
+nonanti_frgnxpns <- frgnxpns %>%
+  filter(anti_lgbtq == 0)
+
+#--------
+# 2013
+#--------
+nonanti_frgnxpns2013_1 <- nonanti_frgnxpns %>%
+  filter(tax_year == 2013) %>%
+  slice(seq(0.5 * n())) %>%
+  group_by(ein, tax_year) %>%
+  slice_min(rtrn_timestmp) %>%
+  mutate(
+    totalXpns_2013 = totalXpns/(232.957/232.957),
+    frgnXpns_2013 = frgnXpns/(232.957/232.957))
+
+nonanti_frgnxpns2013_2 <- nonanti_frgnxpns %>%
+  filter(tax_year == 2013) %>%
+  slice(-seq(0.5 * n())) %>%
+  group_by(ein, tax_year) %>%
+  slice_min(rtrn_timestmp) %>%
+  mutate(
+    totalXpns_2013 = totalXpns/(232.957/232.957),
+    frgnXpns_2013 = frgnXpns/(232.957/232.957))
+#--------
+#--------
+# 2014
+#--------
+nonanti_frgnxpns2014_1 <- nonanti_frgnxpns %>%
+  filter(tax_year == 2014) %>%
+  slice(seq(0.5 * n())) %>%
+  group_by(ein, tax_year) %>%
+  slice_min(rtrn_timestmp) %>%
+  mutate(
+    totalXpns_2013 = totalXpns/(232.957/236.736),
+    frgnXpns_2013 = frgnXpns/(232.957/236.736))
+
+nonanti_frgnxpns2014_2 <- nonanti_frgnxpns %>%
+  filter(tax_year == 2014) %>%
+  slice(-seq(0.5 * n())) %>%
+  group_by(ein, tax_year) %>%
+  slice_min(rtrn_timestmp) %>%
+  mutate(
+    totalXpns_2013 = totalXpns/(232.957/236.736),
+    frgnXpns_2013 = frgnXpns/(232.957/236.736))
+#--------
+#--------
+# 2015
+#--------
+nonanti_frgnxpns2015_1 <- nonanti_frgnxpns %>%
+  filter(tax_year == 2015) %>%
+  slice(seq(0.5 * n())) %>%
+  group_by(ein, tax_year) %>%
+  slice_min(rtrn_timestmp) %>%
+  mutate(
+    totalXpns_2013 = totalXpns/(232.957/237.017),
+    frgnXpns_2013 = frgnXpns/(232.957/237.017))
+
+nonanti_frgnxpns2015_2 <- nonanti_frgnxpns %>%
+  filter(tax_year == 2015) %>%
+  slice(-seq(0.5 * n())) %>%
+  group_by(ein, tax_year) %>%
+  slice_min(rtrn_timestmp) %>%
+  mutate(
+    totalXpns_2013 = totalXpns/(232.957/237.017),
+    frgnXpns_2013 = frgnXpns/(232.957/237.017))
+#--------
+#--------
+# 2016
+#--------
+nonanti_frgnxpns2016_1 <- nonanti_frgnxpns %>%
+  filter(tax_year == 2016) %>%
+  slice(seq(0.5 * n())) %>%
+  group_by(ein, tax_year) %>%
+  slice_min(rtrn_timestmp) %>%
+  mutate(
+    totalXpns_2013 = totalXpns/(232.957/240.007),
+    frgnXpns_2013 = frgnXpns/(232.957/240.007))
+
+nonanti_frgnxpns2016_2 <- nonanti_frgnxpns %>%
+  filter(tax_year == 2016) %>%
+  slice(-seq(0.5 * n())) %>%
+  group_by(ein, tax_year) %>%
+  slice_min(rtrn_timestmp) %>%
+  mutate(
+    totalXpns_2013 = totalXpns/(232.957/240.007),
+    frgnXpns_2013 = frgnXpns/(232.957/240.007))
+#--------
+#--------  
+# 2017
+#--------
+nonanti_frgnxpns2017_1 <- nonanti_frgnxpns %>%
+  filter(tax_year == 2017) %>%
+  slice(seq(0.5 * n())) %>%
+  group_by(ein, tax_year) %>%
+  slice_min(rtrn_timestmp) %>%
+  mutate(
+    totalXpns_2013 = totalXpns/(232.957/245.120),
+    frgnXpns_2013 = frgnXpns/(232.957/245.120))
+
+nonanti_frgnxpns2017_2 <- nonanti_frgnxpns %>%
+  filter(tax_year == 2017) %>%
+  slice(-seq(0.5 * n())) %>%
+  group_by(ein, tax_year) %>%
+  slice_min(rtrn_timestmp) %>%
+  mutate(
+    totalXpns_2013 = totalXpns/(232.957/245.120),
+    frgnXpns_2013 = frgnXpns/(232.957/245.120))
+#--------
+#--------
+# 2018
+#--------
+nonanti_frgnxpns2018_1 <- nonanti_frgnxpns %>%
+  filter(tax_year == 2018) %>%
+  slice(seq(0.5 * n())) %>%
+  group_by(ein, tax_year) %>%
+  slice_min(rtrn_timestmp) %>%
+  mutate(
+    totalXpns_2013 = totalXpns/(232.957/251.107),
+    frgnXpns_2013 = frgnXpns/(232.957/251.107))
+
+nonanti_frgnxpns2018_2 <- nonanti_frgnxpns %>%
+  filter(tax_year == 2018) %>%
+  slice(-seq(0.5 * n())) %>%
+  group_by(ein, tax_year) %>%
+  slice_min(rtrn_timestmp) %>%
+  mutate(
+    totalXpns_2013 = totalXpns/(232.957/251.107),
+    frgnXpns_2013 = frgnXpns/(232.957/251.107))
+#--------
+#--------
+# 2019
+#--------
+nonanti_frgnxpns2019_1 <- nonanti_frgnxpns %>%
+  filter(tax_year == 2019) %>%
+  slice(seq(0.5 * n())) %>%
+  group_by(ein, tax_year) %>%
+  slice_min(rtrn_timestmp) %>%
+  mutate(
+    totalXpns_2013 = totalXpns/(232.957/255.657),
+    frgnXpns_2013 = frgnXpns/(232.957/255.657))
+
+nonanti_frgnxpns2019_2 <- nonanti_frgnxpns %>%
+  filter(tax_year == 2019) %>%
+  slice(-seq(0.5 * n())) %>%
+  group_by(ein, tax_year) %>%
+  slice_min(rtrn_timestmp) %>%
+  mutate(
+    totalXpns_2013 = totalXpns/(232.957/255.657),
+    frgnXpns_2013 = frgnXpns/(232.957/255.657))
+#--------
+#--------
+# 2020
+#--------
+nonanti_frgnxpns2020_1 <- nonanti_frgnxpns %>%
+  filter(tax_year == 2020) %>%
+  slice(seq(0.5 * n())) %>%
+  group_by(ein, tax_year) %>%
+  slice_min(rtrn_timestmp) %>%
+  mutate(
+    totalXpns_2013 = totalXpns/(232.957/258.811),
+    frgnXpns_2013 = frgnXpns/(232.957/258.811))
+
+nonanti_frgnxpns2020_2 <- nonanti_frgnxpns %>%
+  filter(tax_year == 2020) %>%
+  slice(-seq(0.5 * n())) %>%
+  group_by(ein, tax_year) %>%
+  slice_min(rtrn_timestmp) %>%
+  mutate(
+    totalXpns_2013 = totalXpns/(232.957/258.811),
+    frgnXpns_2013 = frgnXpns/(232.957/258.811))
+#--------
+
+nonanti_frgnxpns2 <- bind_rows(
+  nonanti_frgnxpns2013_1,
+  nonanti_frgnxpns2013_2,
+  nonanti_frgnxpns2014_1,
+  nonanti_frgnxpns2014_2,
+  nonanti_frgnxpns2015_1,
+  nonanti_frgnxpns2015_2,
+  nonanti_frgnxpns2016_1,
+  nonanti_frgnxpns2016_2,
+  nonanti_frgnxpns2017_1,
+  nonanti_frgnxpns2017_2,
+  nonanti_frgnxpns2018_1,
+  nonanti_frgnxpns2018_2,
+  nonanti_frgnxpns2019_1,
+  nonanti_frgnxpns2019_2,
+  nonanti_frgnxpns2020_1,
+  nonanti_frgnxpns2020_2
+)
+
+
+
 #   how to calculate real 2013 dollars:
 #   (money in year X)/((CPI in 2013)/(CPI in that year))
 #   CPIs from BLS: (https://www.bls.gov/cpi/tables/supplemental-files/historical-cpi-u-202203.pdf)
@@ -484,98 +696,5 @@ frgnxpns <- joindf_dups %>%
 #--------------------------
 # Exporting the data
 #-------------------------- 
-write_csv(frgnxpns, "/Volumes/GoogleDrive/My Drive/F990/Data from OneDrive/scm_sample_draft_220520.csv")
-#--------------------------
-
-
-
-
-####----------------- FILE ENDS HERE. THE REST IS STUFF.
-
-
-
-
-####----------------- STUFF
-  
-by_ein_name <- frgnxpns_realUSD %>%
-  group_by(ein, name) %>% 
-  tally()
-  
-
-aa <- frgnxpns_realUSD %>%
-  filter(name == "Rofeh Cholim Cancer Society")
-  
-  
-  
-  mutate(
-    clean_totalExpenses = case_when(
-      pt9_totalFnctnlExpns < 0 ~ pt9_totalFnctnlExpns*(-1),
-      TRUE ~ pt9_totalFnctnlExpns
-    ),
-    clean_totalFrgnGrnts = case_when(
-      pt9_totalFrgnGrnts < 0 ~ pt9_totalFrgnGrnts*(-1),
-      is.na(pt9_totalFrgnGrnts) == TRUE ~ 0,
-      TRUE ~ pt9_totalFrgnGrnts
-    )) %>%
-  mutate(clean_FrgnExpnsPctg = clean_totalFrgnGrnts/clean_totalExpenses,
-         clean_FrgnExpnsPctg = case_when(
-           is.na(clean_FrgnExpnsPctg) == TRUE ~ 0,
-           TRUE ~ clean_FrgnExpnsPctg
-         ))
-#--------------------------
-#--------------------------
-# Filtering observations; making a clean data set
-#-------------------------- 
-# I will drop the obs where expenses are = 0
-# I will drop all values that are duplicated. Will only keep unique values.
-# I will convert the gross expenses into millions of USD
-# I will drop obs where the value for frgn expenses as a % of all expenses is strange
-#   there are 13
-
-frgnxpns_clean <- frgnxpns %>%
-  filter(dup == 0) %>%
-  filter(clean_totalExpenses > 0) %>%
-  mutate(spent_abroad = case_when(
-    clean_totalFrgnGrnts > 0 ~ 1,
-    TRUE ~ 0
-  ),
-  factor_txyr = as.factor(tax_year),
-  clean_totalFrgnGrnts_mm = clean_totalFrgnGrnts/1000000) %>%
-  filter(clean_FrgnExpnsPctg < 1) %>%
-  filter(tax_year < 2020,
-         spent_abroad == 1) %>%
-  mutate(state_factor = as.factor(rtrn_state),
-         anti = case_when(
-           ein == 410692230 ~ 1,
-           ein == 530204604 ~ 1,
-           ein == 237432162 ~ 1,
-           ein == 382822017 ~ 1,
-           ein == 134196230 ~ 1,
-           ein == 382926822 ~ 1,
-           ein == 237325778 ~ 1,
-           ein == 132875808 ~ 1,
-           ein == 810983298 ~ 1,
-           TRUE ~ anti
-         ),
-         name = case_when(
-           ein == 410692230 ~ "Billy Graham Evangelist Association",
-           ein == 530204604 ~ "Fellowship Foundation",
-           ein == 237432162 ~ "Intervarsity Christian Fellowship",
-           ein == 237432162 ~ "Cato Institute",
-           ein == 382822017 ~ "Bethany Christian Services",
-           ein == 134196230 ~ "World Youth Alliance",
-           ein == 382926822 ~ "ACTON Institute for the Study of Religion and Liberty",
-           ein == 237325778 ~ "American Society for the Defense of Tradition, Family, Property",
-           ein == 132875808 ~ "International Human Rights Group",
-           ein == 810983298 ~ "Religious Freedom Institute",
-           TRUE ~ name
-         ),
-         anti_factor = case_when(
-           anti == 1 ~ "Anti-LGBTQ+",
-           anti == 0 ~ "Non Anti-LGBTQ+"
-         ),
-         anti_factor = as.factor(anti_factor)) 
-
-# length(unique(frgnxpns_clean$name)) # 26 anti-lgbtq+ orgs
-# length(unique(frgnxpns_clean$ein))-length(unique(frgnxpns_clean$name)) # 14,545 non anti-lgtbq
+write_csv(frgnxpns, "/Users/srojascabal/Desktop/000_f990_data/scm_sample_draft_220601.csv")
 #--------------------------

@@ -1,7 +1,7 @@
 ## File for Downloading Specified PDFs from ProPublica API
-# OPIOID
-# 12.17.20
-# Andrew Messamore
+# ANTI-LGBTQ EINs
+# 06.06.322
+# Kristopher Velasco and Sebastian Rojas Cabal. Adapted from Andrew Messamore.
 
 library( RCurl )
 library( jsonlite )
@@ -11,16 +11,15 @@ library(readxl)
 
 rm(list=ls())
 
-
 ## Create Directory
-setwd("/Users/Wolfalev/Documents/Grad/UT-AUSTIN GRAD/Articles and Projects/5. 990 Project/")
-dir.create( "IRS990_PDFs_Opioid" )
-setwd( "./IRS990_PDFs_Opioid" )
-
+setwd("/Users/srojascabal/Desktop/F990 Project/")
+dir.create( "IRS990_PDFs_AntiLGBTQ" )
+setwd( "./IRS990_PDFs_AntiLGBTQ" )
 
 ## Download Data #Change Link Below
-opioid_eins  <- read_excel("/Users/Wolfalev/Documents/Grad/UT-AUSTIN GRAD/Articles and Projects/5. 990 Project/Data_Main/eins_opioid_19982016.xlsx")
-opioid_eins <- opioid_eins %>% 
+antilgbtq_eins  <- read_csv("/Users/srojascabal/Desktop/F990 Project/Data_Main/eins_antilgbtq_20132020_220603.csv")
+antilgbtq_eins <- antilgbtq_eins %>% 
+  rename(ein_org = ein) %>%
   mutate(ein_org = as.character(ein_org))
 
 ## Write Function
@@ -60,7 +59,7 @@ download_pdfs <- function( ein )
 error_counter <- 0
 # 18 errors
 
-for (i in opioid_eins$ein_org){
+for (i in antilgbtq_eins$ein_org){
   
   skip_to_next <- FALSE
   

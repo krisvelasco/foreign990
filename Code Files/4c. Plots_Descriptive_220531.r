@@ -23,8 +23,14 @@ library(stringr)
 #--------------------------------------------------------
 # Importing the data
 #--------------------------------------------------------
-anti <- read_csv("/Users/srojascabal/Desktop/000_f990_data/anti_sample_220601.csv") #%>%
-select(ein, tax_year, rtrn_state, frgnXpns_2013, totalXpns_2013, year)
+anti <- read_csv("/Users/srojascabal/Desktop/000_f990_data/anti_sample_220601.csv") %>%
+select(ein) %>%
+  distinct()
+
+write_csv(anti, "/Users/srojascabal/Desktop/F990 Project/Data_Main/eins_antilgbtq_20132020_220603.csv")
+
+
+, tax_year, rtrn_state, frgnXpns_2013, totalXpns_2013, year)
 
 anti2 <- anti %>%
 select(ein, name, tax_year, rtrn_state, frgnXpns_2013, totalXpns_2013) %>%

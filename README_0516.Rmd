@@ -13,7 +13,18 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 # Last update by: Sebastian
 
-## Tuesday, May 31 - Wednesday, June 1
+## For getting the 2008-2013 data
+1. Get PDFs from Citizen Audit. Kristopher has the code to do that.
+2. Figure out the code or program we are using for extracting the information.
+ + Layout parser: https://layout-parser.github.io/
+ + Company Kristopher is contacting.
+ + Layout parser: https://layout-parser.github.io/
+3. Collecting the first page (Part I) of Form 990, and Schedule F (Part I and Part II; pp. 1-2)
+4. We will use cases up to 2013, to avoid anticipation effects coming from the repeal of DOMA.
+USE THE CODE ON GITHUB TO GET THE STUFF FROM CITIZEN AUDIT. BY 3 PM WE WILL KNOW WHATS UP.
+
+## Tuesday, May 31 - Friday, June 3
+* **THIS IS PAUSED UNTIL WE GET ALL THE DATA FROM 2008-2013, FROM OCR**
 * New samples for descriptive figures.
 * **FOR EASE OF DOWNLOAD AND DATA MANAGEMENT** the sample is divided into anti-LGBTQ+ nonprofits in one file and non-anti nonprofits in another one. They are named as follows:
   + **anti_sample_220601.csv**.

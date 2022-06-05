@@ -57,7 +57,7 @@ download_pdfs <- function( ein )
 ## Pull PDFS
 
 error_counter <- 0
-# 18 errors
+# 517 errors
 
 for (i in antilgbtq_eins$ein_org){
   

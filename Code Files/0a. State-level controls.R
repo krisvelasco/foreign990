@@ -32,6 +32,22 @@ gdp <- read_csv("/Users/srojascabal/Desktop/000_f990_data/gsp_naics_all.csv") %>
 #   )
 
 # Governor's party
+#   CITE LIKE THIS
+#     Kaplan, Jacob. United States Governors 1775-2020: united_states_governors_1775_2020.csv. Ann Arbor, MI: Inter-university Consortium for Political and Social Research [distributor], 2021-01-16. https://doi.org/10.3886/E102000V3-82580
+#     From: https://www.openicpsr.org/openicpsr/project/102000/version/V3/view?path=/openicpsr/102000/fcr:versions/V3/united_states_governors_1775_2020.csv&type=file    
+#     To view the citation for the overall project, see http://doi.org/10.3886/E102000V3.
+
+gov_party <- read_csv("/Users/srojascabal/Desktop/000_f990_data/united_states_governors_1775_2020.csv") %>%
+  filter(
+          year == 2008 |
+          year == 2009 |
+          year == 2010 |
+          year == 2011 |
+          year == 2012 |
+          year == 2013) %>%
+  select(state, year, party) %>%
+  rename(gov_party = party) %>%
+  arrange(state, year)
 
 # Total nonprofits by state
 eo_states <- data.frame(

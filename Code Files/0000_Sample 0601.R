@@ -23,7 +23,7 @@ library(stringr)
 #   List of anti-LGBTQ+ orgs
 # -------------------------
 # List of known anti-LGBTQ+ nonprofits. 
-orgs1 <- read_excel("/Users/srojascabal/Desktop/000_f990_data/anti_lgbtq_eins_20220422.xlsx") %>%
+orgs1 <- read_excel("/Volumes/SRC_FILES/0000_F990 Project/000_f990_data/anti_lgbtq_eins_20220422.xlsx") %>%
   rename(name = Organization,
          ein_char = ein) %>%
   mutate(ein_char = str_trim(ein_char),
@@ -32,7 +32,7 @@ orgs1 <- read_excel("/Users/srojascabal/Desktop/000_f990_data/anti_lgbtq_eins_20
   distinct(ein, .keep_all = TRUE) %>%
   distinct(name, .keep_all = TRUE)
 # List of first-order ties to known anti-LGBTQ+ nonprofits.
-orgs2 <- read_csv("/Users/srojascabal/Desktop/000_f990_data/anti_lgbtq_candidates_20220516.csv") %>%
+orgs2 <- read_csv("/Volumes/SRC_FILES/0000_F990 Project/000_f990_data/anti_lgbtq_candidates_20220516.csv") %>%
   distinct(ein, .keep_all = TRUE) %>%
   distinct(name, .keep_all = TRUE)
 # Binding all candidate anti-LGBTQ+ orgs
@@ -47,7 +47,7 @@ orgs_all <- bind_rows(orgs1, orgs2) %>%
 # -------------------------
 #       Return Header of Form 990
 # -------------------------
-rtrn <- read_csv("/Users/srojascabal/Desktop/000_f990_data/return_header.csv")
+rtrn <- read_csv("/Volumes/SRC_FILES/0000_F990 Project/000_f990_data/return_header.csv")
 # these are the forms submissions with metadata from Amazon Web Services/IRS.
 #   length(unique(rtrn$id))/nrow(rtrn) # all ids are unique
 #   length(unique(rtrn$object_id))/nrow(rtrn) # object_ids are not unique. Parsing problem?

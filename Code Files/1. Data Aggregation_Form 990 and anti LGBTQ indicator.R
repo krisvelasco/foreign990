@@ -271,5 +271,5 @@ rtrn09_anti <- full_join(join_rtrn09, orgs_all, by = c("ein")) %>%
 #--------------------------
 #   Exporting merged data set with all variables
 #-------------------------- 
-write_csv(rtrn09_anti, "Datasets/from990_rtrn09_anti_dirty.csv")
+write_csv(rtrn09_anti, "Datasets/form990_rtrn09_anti_dirty.csv")
 #--------------------------

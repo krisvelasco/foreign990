@@ -15,21 +15,19 @@ library(readxl)
 library(stringr)
 #--------------------------------------------------------
 #--------------------------
-#   Selecting relevant variables from the merged data sets
-#--------------------------  
-# We will call the resulting data frame 'frgnxpns'
-# This data set will only include anti_lgbtq orgs
-joindf <- rtrn09_anti %>%
-  select(ein, object_id,
+# Data import
+#--------------------------
+dirty_data <- read_csv("/Users/srojascabal/Desktop/000_f990_data/form990_rtrn09_anti_dirty.csv") %>%
+  select(ein, object_id, # Selecting relevant variables
          tax_year, anti_lgbtq, anti_factor, name,
          rtrn_timestmp, rtrn_txyrbgndt, rtrn_txyrenddt,           
-         pt9_totalFnctnlExpns, pt9_totalFrgnGrnts, FrgnExpnssPrctng,pt9_prgrmSrcvsAmtFrgnGrnts,
+         pt9_totalFnctnlExpns, pt9_totalFrgnGrnts, FrgnExpnssPrctng, pt9_prgrmSrcvsAmtFrgnGrnts,
          pt0_state, rtrn_state)
 #--------------------------
 # Identifying the duplicated observations
 #--------------------------   
 # Many nonprofits submit miltiple forms a year. We only want the most recent.
-dups <- joindf %>% count(ein, tax_year) %>%
+dups <- dirty_data %>% count(ein, tax_year) %>%
   mutate(dup = case_when(
     n == 1 ~ 0,
     n > 1 ~ 1)) %>%
@@ -37,7 +35,7 @@ dups <- joindf %>% count(ein, tax_year) %>%
   select(ein, tax_year, dup)
 
 # Adding them to the joint data
-joindf_dups <- inner_join(joindf, dups, by = c("ein", "tax_year"))
+joindf_dups <- inner_join(dirty_data, dups, by = c("ein", "tax_year"))
 #--------------------------
 #--------------------------
 # Cleaning some relevant variables and adding new ones
@@ -87,7 +85,10 @@ frgnxpns <- joindf_dups %>%
     frgnSrvcs = clean_totalFrgnSrvs,
     pctgFrgnXpns = clean_FrgnExpnsPctg
   )
-
+#-----
+#-----
+# ANTI-LBTQ+ sample: New vars
+#-----
 anti_frgnxpns <- frgnxpns %>%
   filter(anti_lgbtq == 1) %>%
   group_by(ein, tax_year) %>%
@@ -233,11 +234,24 @@ anti_frgnxpns <- frgnxpns %>%
     )
   ) %>%
   filter(tax_year < 2021)
+  
+group_by(rtrn_state) %>%
+  mutate(
+    indicMrgEq_rtrn  = case_when(
+      yearMrgEq_rtrn >= tax_year ~ 1,
+      FALSE ~ 0
+    )
+  )
+  
 #--------
-
+#-----
+# NON ANTI-LBTQ+ sample: New vars
+#   We'll split the sample into smaller chunks to make computation easier
+#-----
 nonanti_frgnxpns <- frgnxpns %>%
   filter(anti_lgbtq == 0)
-
+#--------
+# WHAT WE SEE BELOW COULD HAVE BEEN A LOOP
 #--------
 # 2013
 #--------

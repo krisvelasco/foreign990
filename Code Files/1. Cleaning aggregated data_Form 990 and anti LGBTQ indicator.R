@@ -45,11 +45,12 @@ dup_data <- joindf_dups %>%
     dup == 1
   )
 
-sliced_min_dup <- dup_data %>%
-  slice_min(rtrn_timestmp)
-
-max_money <- dirty_data %>%
-  filter(pt9_totalFrgnGrnts == 4160760803)
+#sliced_min_dup <- dup_data %>%
+#  group_by(ein, tax_year)%>%
+#  slice_min(rtrn_timestmp)
+#
+#max_money <- dirty_data %>%
+#  filter(pt9_totalFrgnGrnts == 4160760803)
 
 # Adding them to the joint data
 joindf_dups <- inner_join(dirty_data, dups, by = c("ein", "tax_year"))
@@ -59,9 +60,8 @@ joindf_dups <- inner_join(dirty_data, dups, by = c("ein", "tax_year"))
 #-------------------------- 
 # When Total Functional Expenses = NA, drop. There are 917 such NAs.
 # When Total Foreign Expenses OR Grants = NA, assume = 0.
-# Assume all negative values are positives with a wrong side. Recode *(-1)
-# Dropping all cases when Functional Expenses = 0.
-# Keeping only the most recent tax filing for each tax year, according to the return time stamp.
+# Dropping all cases when Functional Expenses >= 0
+# Keeping only the most recent tax filing for each tax year, according to the return time stamp (slice_max).
 # The analysis will be in constant (real) 2013 dollars.
 #     CPIs from BLS: (https://www.bls.gov/cpi/tables/supplemental-files/historical-cpi-u-202203.pdf)
 #     Method from making it current dollars (https://www.bls.gov/cpi/factsheets/cpi-math-calculations.pdf)
@@ -70,28 +70,23 @@ joindf_dups <- inner_join(dirty_data, dups, by = c("ein", "tax_year"))
 
 frgnxpns <- joindf_dups %>%
   mutate(
-    clean_totalExpenses = case_when(
-      pt9_totalFnctnlExpns < 0 ~ pt9_totalFnctnlExpns*(-1),
-      TRUE ~ pt9_totalFnctnlExpns
-    ),
+    clean_totalExpenses = pt9_totalFnctnlExpns,
     clean_totalFrgnGrnts = case_when(
-      pt9_totalFrgnGrnts < 0 ~ pt9_totalFrgnGrnts*(-1),
       is.na(pt9_totalFrgnGrnts) == TRUE ~ 0,
       TRUE ~ pt9_totalFrgnGrnts
     ),
-    clean_totalFrgnSrvs = case_when(
-      pt9_prgrmSrcvsAmtFrgnGrnts < 0 ~ pt9_prgrmSrcvsAmtFrgnGrnts*(-1),
+    clean_totalFrgnSrvcs = case_when(
       is.na(pt9_prgrmSrcvsAmtFrgnGrnts) == TRUE ~ 0,
       TRUE ~ pt9_prgrmSrcvsAmtFrgnGrnts
     )) %>%
-  mutate(clean_FrgnExpnsPctg = clean_totalFrgnGrnts/clean_totalExpenses,
-         clean_FrgnExpnsPctg = case_when(
-           is.na(clean_FrgnExpnsPctg) == TRUE ~ 0,
-           TRUE ~ clean_FrgnExpnsPctg
-         )) %>%
-  arrange(ein, tax_year) %>%
   filter(!is.na(clean_totalExpenses),
-         clean_totalExpenses>0) %>%
+         clean_totalExpenses >= 0,
+         clean_totalFrgnGrnts >= 0,
+         clean_totalFrgnSrvcs >= 0) %>%
+  mutate(clean_totalExpenses_100k = clean_totalExpenses/100000,
+         clean_totalFrgnGrnts_100k = clean_totalFrgnGrnts/100000,
+         clean_totalFrgnSrvcs_100k = clean_totalFrgnSrvcs/100000) %>%
+  arrange(ein, tax_year) %>%
   select(
     ein, object_id, tax_year, name,
     dup, anti_lgbtq, anti_factor, pt0_state, starts_with("rtrn"), starts_with("clean")
@@ -99,9 +94,9 @@ frgnxpns <- joindf_dups %>%
   rename(
     totalXpns = clean_totalExpenses,
     frgnXpns = clean_totalFrgnGrnts,
-    frgnSrvcs = clean_totalFrgnSrvs,
-    pctgFrgnXpns = clean_FrgnExpnsPctg
+    frgnSrvcs = clean_totalFrgnSrvcs
   )
+  
 #-----
 #-----
 # ANTI-LBTQ+ sample: New vars
@@ -109,7 +104,7 @@ frgnxpns <- joindf_dups %>%
 anti_frgnxpns_clean <- frgnxpns %>%
   filter(anti_lgbtq == 1) %>%
   group_by(ein, tax_year) %>%
-  slice_min(rtrn_timestmp) %>%
+  slice_max(rtrn_timestmp) %>%
   mutate(
     totalXpns_2013 =
       case_when(
@@ -133,6 +128,35 @@ anti_frgnxpns_clean <- frgnxpns %>%
         tax_year == 2019 ~ frgnXpns/(232.957/255.657),
         tax_year == 2020 ~ frgnXpns/(232.957/258.811)
       ),
+    frgnSrvcs_2013 = 
+      case_when(
+        tax_year == 2013 ~ frgnSrvcs/(232.957/232.957),
+        tax_year == 2014 ~ frgnSrvcs/(232.957/236.736),
+        tax_year == 2015 ~ frgnSrvcs/(232.957/237.017),
+        tax_year == 2016 ~ frgnSrvcs/(232.957/240.007),
+        tax_year == 2017 ~ frgnSrvcs/(232.957/245.120),
+        tax_year == 2018 ~ frgnSrvcs/(232.957/251.107),
+        tax_year == 2019 ~ frgnSrvcs/(232.957/255.657),
+        tax_year == 2020 ~ frgnSrvcs/(232.957/258.811)
+      ),
+    totalXpns_2013_100k = totalXpns_2013/100000,
+    frgnXpns_2013_100k = frgnXpns_2013/100000,
+    frgnSrvcs_2013_100k = frgnSrvcs_2013/100000,
+    propFrgnXpns = frgnXpns/totalXpns,
+    propFrgnXpns = case_when(
+      is.na(propFrgnXpns) == TRUE ~ 0,
+      TRUE ~ propFrgnXpns
+    ),    
+    propFrgnXpns_2013 = frgnXpns_2013/totalXpns_2013,
+    propFrgnXpns_2013 = case_when(
+      is.na(propFrgnXpns_2013) == TRUE ~ 0,
+      TRUE ~ propFrgnXpns_2013
+    ),
+    propFrgnXpns_2013_100k = frgnXpns_2013_100k/totalXpns_2013_100k,
+    propFrgnXpns_2013_100k = case_when(
+      is.na(propFrgnXpns_2013_100k) == TRUE ~ 0,
+      TRUE ~ propFrgnXpns_2013_100k
+    ),
     yearMrgEq_rtrn = case_when(
       rtrn_state == "AL" ~ 2015,
       rtrn_state == "AK" ~ 2014,
@@ -258,7 +282,8 @@ anti_frgnxpns_clean <- frgnxpns %>%
       TRUE ~ 1
     ),
   ) %>%
-  filter(tax_year < 2021) %>%
+  filter(propFrgnXpns_2013 < 1.02,
+         tax_year < 2021) %>%
   ungroup()
 #----
 #-----
@@ -278,10 +303,29 @@ for (i in 1:length(tax_year_vector)) {
   df_subset <- nonanti_frgnxpns %>%
     filter(tax_year == tax_year_vector[i]) %>%
     group_by(ein, tax_year) %>%
-    slice_min(rtrn_timestmp) %>%
+    slice_max(rtrn_timestmp) %>%
     mutate(
-      totalXpns_2013 = totalXpns/(232.957/cpi_vector[i]),
-      frgnXpns_2013 = frgnXpns/(232.957/cpi_vector[i]),
+    totalXpns_2013 = totalXpns/(232.957/cpi_vector[i]),
+    frgnXpns_2013 = frgnXpns/(232.957/cpi_vector[i]),
+    frgnSrvcs_2013 = frgnSrvcs/(232.957/cpi_vector[i]),
+    totalXpns_2013_100k = totalXpns_2013/100000,
+    frgnXpns_2013_100k = frgnXpns_2013/100000,
+    frgnSrvcs_2013_100k = frgnSrvcs_2013/100000,
+    propFrgnXpns = frgnXpns/totalXpns,
+    propFrgnXpns = case_when(
+      is.na(propFrgnXpns) == TRUE ~ 0,
+      TRUE ~ propFrgnXpns
+    ),    
+    propFrgnXpns_2013 = frgnXpns_2013/totalXpns_2013,
+    propFrgnXpns_2013 = case_when(
+      is.na(propFrgnXpns_2013) == TRUE ~ 0,
+      TRUE ~ propFrgnXpns_2013
+    ),
+    propFrgnXpns_2013_100k = frgnXpns_2013_100k/totalXpns_2013_100k,
+    propFrgnXpns_2013_100k = case_when(
+      is.na(propFrgnXpns_2013_100k) == TRUE ~ 0,
+      TRUE ~ propFrgnXpns_2013_100k
+    ),
     yearMrgEq_rtrn = case_when(
       rtrn_state == "AL" ~ 2015,
       rtrn_state == "AK" ~ 2014,
@@ -406,7 +450,8 @@ for (i in 1:length(tax_year_vector)) {
       tax_year < yearMrgEq_pt0 ~ 0,
       TRUE ~ 1
       ),
-  )
+  ) %>%
+   filter(propFrgnXpns_2013 < 1.02)
 #----
   
   # Name of the year-specific subset for saving in global environment  

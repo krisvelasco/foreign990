@@ -465,53 +465,11 @@ for (i in 1:length(tax_year_vector)) {
 nonanti_frgnxpns_clean <- mget(ls(pattern="^subset_nonanti_")) %>%
   bind_rows()
 
-summary(nonanti_frgnxpns_clean)
+# summary(nonanti_frgnxpns_clean)
 
 #--------------------------
 # Exporting the data
 #-------------------------- 
-write_csv(anti_frgnxpns_clean, "/Users/srojascabal/Desktop/000_f990_data/anti_sample_dirty_220630.csv")
-write_csv(nonanti_frgnxpns_clean, "/Users/srojascabal/Desktop/000_f990_data/nonanti_sample_dirty_220630.csv")
-#--------------------------
-
-# Visualizations to see what else is wrong
-test <- nonanti_frgnxpns_clean %>%
-  mutate(
-    mm_totalXpns2013 = totalXpns_2013/1000000,
-    mm_frgnXpns2013 = frgnXpns_2013/1000000,
-    mm_pctg_FrngXpns2013 = (mm_frgnXpns2013/mm_totalXpns2013)*100
-  )
-
-test2 <- anti_frgnxpns_clean %>%
-  mutate(
-    mm_totalXpns2013 = totalXpns_2013/1000000,
-    mm_frgnXpns2013 = frgnXpns_2013/1000000,
-    mm_pctg_FrngXpns2013 = (frgnXpns_2013/totalXpns_2013)*100)
-  )
-
-summary(test$mm_pctg_FrngXpns2013)
-
-#%>%
-ggplot(aes(x=mm_totalXpns2013)) + 
-  geom_density()
-
-
-#   how to calculate real 2013 dollars:
-#   (money in year X)/((CPI in 2013)/(CPI in that year))
-#   CPIs from BLS: (https://www.bls.gov/cpi/tables/supplemental-files/historical-cpi-u-202203.pdf)
-#   Method from making it current dollars (https://www.bls.gov/cpi/factsheets/cpi-math-calculations.pdf)
-#   2013 = 232.957
-#   2014 = 236.736
-#   2015 = 237.017
-#   2016 = 240.007
-#   2017 = 245.120
-#   2018 = 251.107
-#   2019 = 255.657
-#   2020 = 258.811
-#--------------------------
-#--------------------------
-# Exporting the data
-#-------------------------- 
-write_csv(anti_frgnxpns, "/Users/srojascabal/Desktop/000_f990_data/anti_sample_220601.csv")
-write_csv(nonanti_frgnxpns2, "/Users/srojascabal/Desktop/000_f990_data/nonanti_sample_220601.csv")
+write_csv(anti_frgnxpns_clean, "/Users/srojascabal/Desktop/000_f990_data/anti_sample_220703.csv")
+write_csv(nonanti_frgnxpns_clean, "/Users/srojascabal/Desktop/000_f990_data/nonanti_sample_220703.csv")
 #--------------------------

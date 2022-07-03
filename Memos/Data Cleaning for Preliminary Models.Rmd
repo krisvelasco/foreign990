@@ -10,6 +10,19 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## How was the data cleaned?
+
+### Control Data
+
+#### GDP by State 
+* State GDP corresponds to the Real GDP by state with NAICS classification. Table number: SAGDP9N.
+  + Source: https://apps.bea.gov/regional/downloadzip.cfm
+  + For info on NAICS classification: https://www.bea.gov/cautionary-note-about-annual-gdp-state-discontinuity
+* Quantities are in chained 2012 millions of US Dollars
+  + "Chained-dollar values of GDP by state are derived by applying national chain-type price indexes to the current dollar values of GDP by state for the 21 North American Industry Classification System -based industry sectors. The chain-type index formula that is used in the national accounts is then used to calculate the values of total real GDP by state and real GDP by state at more aggregated industry levels. Real GDP by state may reflect a substantial volume of output that is sold to other states and countries. To the extent that a state's output is produced and sold in national markets at relatively uniform prices (or sold locally at national prices), real GDP by state captures the differences across states that reflect the relative differences in the mix of goods and services that the states produce. However, real GDP by state does not capture geographic differences in the prices of goods and services that are produced and sold locally." From: https://www.bea.gov/news/2021/gross-domestic-product-state-4th-quarter-2020-and-annual-2020-preliminary
+ + Quantities were converted to hundreds of thousands of US Dollars.
+
+### Nonprofit Data
+* Clean nonprofit data stored as **anti_sample_220703.csv** and **nonanti_sample_220703.csv**
 * Cases where for Foreign Expenses, Foreign Services or Total Expenses were negative (lower than zero) were dropped from the sample.
 * Cases where Total Expenses were missing (NA) were dropped from the sample.
 * Cases where Foreign Expenses, Total Expenses, or Foreign Services were missing (NA), they were converted to zero (0).

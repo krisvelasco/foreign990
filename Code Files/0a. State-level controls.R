@@ -1,24 +1,116 @@
-# State-level controls
-# Prepared by Sebastian Rojas for the F990 project
+## Project: Nonprofit Foreign Expenditures
 
-#Packages
+## Overview: 
+#   This file assembles the relevant control variables
+#   for the preliminary models, to be appended to the
+#   07/03 nonprofit data.
+
+## Last updated: July 3rd by Sebastian Rojas Cabal
+#--------------------------------------------------------
+# Preliminaries
+#   Loading packages
+#--------------------------------------------------------
 library(tidyverse)
 library(readxl)
+#--------------------------------------------------------
+# State-level GDP, 2008-2015
+#   Source: Bureau of Economic Analysis (https://apps.bea.gov/regional/histdata/releases/0616gsp/index.cfm)
+#--------------------------------------------------------
 
-# Data import
-#   State-level GDP, 2008-2015.
-#     Source: Bureau of Economic Analysis (https://apps.bea.gov/regional/histdata/releases/0616gsp/index.cfm)
-gdp <- read_csv("/Users/srojascabal/Desktop/000_f990_data/gsp_naics_all.csv") %>%
-  filter(IndustryId == "1") %>% # Only keeping GDP for all industries ("all industry total")
+# Unit is: Millions of chained 2012 dollars
+# Description: All industry total
+gdp <- read_csv("/Users/srojascabal/Desktop/000_f990_data/SAGDP/SAGDP9N__ALL_AREAS_1997_2021.csv",
+                col_types = list(
+                  `2008` = col_double(),
+                  `2009` = col_double(),
+                  `2010` = col_double(),
+                  `2011` = col_double(),
+                  `2012` = col_double(),
+                  `2013` = col_double(),
+                  `2014` = col_double(),
+                  `2015` = col_double(),
+                  `2016` = col_double(),
+                  `2017` = col_double(),
+                  `2018` = col_double(),
+                  `2019` = col_double(),
+                  `2020` = col_double())
+                ) %>%
+  filter(Description == "All industry total") %>% # Only keeping GDP for all industries ("all industry total")
   select(
-    GeoFIPS, GeoName, Region, ComponentId, ComponentName,
-    `2008`, `2009`, `2010`, `2011`, `2012`, `2013`, `2014`, `2015`
+    GeoFIPS, GeoName,
+    `2008`, `2009`, `2010`, `2011`, `2012`, `2013`, `2014`, `2015`,
+    `2016`, `2017`, `2018`, `2019`, `2020`
     ) %>%
-  filter( # Keeping relevant measures of GDP
-    ComponentId == "200" | # GDP by state
-    ComponentId == "900" | # Real GDP by state
-    ComponentId == "1000"  # Per capita GDP by state
+  filter(
+    !GeoName %in% c("United States", "New England", "Mideast", "Great Lakes", "Plains", "Southeast", "Southwest", "Rocky Mountain", "Far West")
+  ) %>%
+  mutate(
+    state_code = case_when(
+      GeoName == "Alabama" ~ "AL",
+      GeoName == "Alaska" ~ "AK",
+      GeoName == "Arizona" ~ "AZ",
+      GeoName == "Arkansas" ~ "AR",
+      GeoName == "California" ~ "CA",
+      GeoName == "Colorado" ~ "CO",
+      GeoName == "Connecticut" ~ "CT",
+      GeoName == "Delaware" ~ "DE",
+      GeoName == "District of Columbia" ~ "DC",
+      GeoName == "Florida" ~ "FL",
+      GeoName == "Georgia" ~ "GA",
+      GeoName == "Hawaii" ~ "HI",
+      GeoName == "Idaho" ~ "ID",
+      GeoName == "Illinois" ~ "IL",
+      GeoName == "Indiana" ~ "IN",
+      GeoName == "Iowa" ~ "IA",
+      GeoName == "Kansas" ~ "KS",
+      GeoName == "Kentucky" ~ "KY",
+      GeoName == "Louisiana" ~ "LA",
+      GeoName == "Maine" ~ "ME",
+      GeoName == "Maryland" ~ "MD",
+      GeoName == "Massachusetts" ~ "MA",
+      GeoName == "Michigan" ~ "MI",
+      GeoName == "Minnesota" ~ "MN",
+      GeoName == "Mississippi" ~ "MS",
+      GeoName == "Missouri" ~ "MO",
+      GeoName == "Montana" ~ "MT",
+      GeoName == "Nebraska" ~ "NE",
+      GeoName == "Nevada" ~ "NV",
+      GeoName == "New Hampshire" ~ "NH",
+      GeoName == "New Jersey" ~ "NJ",
+      GeoName == "New Mexico" ~ "NM",
+      GeoName == "New York" ~ "NY",
+      GeoName == "North Carolina" ~ "NC",
+      GeoName == "North Dakota" ~ "ND",
+      GeoName == "Ohio" ~ "OH",
+      GeoName == "Oklahoma" ~ "OK",
+      GeoName == "Oregon" ~ "OR",
+      GeoName == "Pennsylvania" ~ "PA",
+      GeoName == "Rhode Island" ~ "RI",
+      GeoName == "South Carolina" ~ "SC",
+      GeoName == "South Dakota" ~ "SD",
+      GeoName == "Tennessee" ~ "TN",
+      GeoName == "Texas" ~ "TX",
+      GeoName == "Utah" ~ "UT",
+      GeoName == "Vermont" ~ "VT",
+      GeoName == "Virginia" ~ "VA",
+      GeoName == "Washington" ~ "WA",
+      GeoName == "West Virginia" ~ "WV",
+      GeoName == "Wisconsin" ~ "WI",
+      GeoName == "Wyoming" ~ "WY")
+  ) %>%
+  select(
+    state_code,
+    `2008`, `2009`, `2010`, `2011`, `2012`, `2013`, `2014`, `2015`,
+    `2016`, `2017`, `2018`, `2019`, `2020`
+  ) %>%
+  pivot_longer(
+    cols = c("2008", "2009", "2010", "2011", "2012", "2013", "2014", "2015",
+             "2016", "2017", "2018", "2019", "2020"),
+    names_to = "tax_year",
+    values_to = "gdp_state_2012"
   )
+
+
 
 #   State-level christian religiosity
 #     Source: GSS via ARDA. They have some notes on how to cite them.

@@ -102,7 +102,7 @@ nonprofits_analysis <- left_join(
 write_csv(nonprofits_analysis, "/Users/srojascabal/Desktop/000_f990_data/analytical_sample_220705.csv")
 #--------------------------------------------------------
 #--------------------------------------------------------
-# Models
+# Models without contorls or FX
 #--------------------------------------------------------
 
 # Foreign Expenses

@@ -5,7 +5,7 @@
 #   for the preliminary models, to be appended to the
 #   07/03 nonprofit data.
 
-## Last updated: July 3rd by Sebastian Rojas Cabal
+## Last updated: July 5th by Sebastian Rojas Cabal
 #--------------------------------------------------------
 # Preliminaries
 #   Loading packages

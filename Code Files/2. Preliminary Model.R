@@ -30,6 +30,9 @@ nonprofits_anti <- read_csv("/Users/srojascabal/Desktop/000_f990_data/anti_sampl
     ein, tax_year, anti_lgbtq, anti_factor,
     rtrn_state, totalXpns_2013_100k, frgnXpns_2013_100k,
     propFrgnXpns_2013_100k, ind_yearMrgEq_rtrn
+  ) %>%
+  filter(
+    !rtrn_state %in% c("PR", "DC")
   )
 
 # Excluding DC and PR
@@ -62,7 +65,7 @@ nonprofits_nonanti <- read_csv("/Users/srojascabal/Desktop/000_f990_data/nonanti
     !rtrn_state %in% c("PR", "DC")
   )
 
-state_controls <- read_csv("/Users/srojascabal/Desktop/000_f990_data/state_controls.csv",
+state_controls2 <- read_csv("/Users/srojascabal/Desktop/000_f990_data/state_controls.csv",
     col_types = cols(
       gov_party = col_character(),
       state_code = col_character(),
@@ -71,7 +74,7 @@ state_controls <- read_csv("/Users/srojascabal/Desktop/000_f990_data/state_contr
       churches = col_double(),
       F990_990EZ = col_double(),    
       rel_orgs = col_double() 
-      )) %>%
+      )) #%>%
     mutate(
       state_religiosity = churches + rel_orgs
     ) %>%
@@ -80,7 +83,7 @@ state_controls <- read_csv("/Users/srojascabal/Desktop/000_f990_data/state_contr
     ) %>%
     select(-churches, -rel_orgs) %>%
     filter(
-      !tax_year %in% c("2013", "2014", "2015",
+      tax_year %in% c("2013", "2014", "2015",
                        "2016", "2017", "2018",
                        "2019", "2020")
     )
@@ -88,12 +91,30 @@ state_controls <- read_csv("/Users/srojascabal/Desktop/000_f990_data/state_contr
 #--------------------------------------------------------
 # Aggregating data
 #--------------------------------------------------------
-nonprofits <- bind_rows(nonprofits_anti, nonprofits_nonanti)
+nonprofits <- bind_rows(nonprofits_anti, nonprofits_nonanti) %>%
+  drop_na() %>%
+  filter(
+    !rtrn_state %in% c("VI", "GU", "AE", "AP", "AS", "MP")
+  )
 
-nonprofits_analysis <- left_join(
+  #   na_summary <- nonprofits %>%
+  #     summarise(across(everything(), ~ sum(is.na(.))))
+
+state13 <- state_controls %>%
+  filter(tax_year == "2013")
+
+state20 <- state_controls %>%
+  filter(tax_year == "2020")
+
+state_anti <- anti_join(
+  state20, state13, by = c("rtrn_state")
+)
+
+
+nonprofits_analysis <- anti_join(
   nonprofits, state_controls,
   by = c("tax_year", "rtrn_state")
-) %>%
+) #%>%
   mutate(
     log_frgnXpns_2013_100k = log(frgnXpns_2013_100k)
   )

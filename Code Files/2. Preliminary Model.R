@@ -32,18 +32,13 @@ nonprofits_anti <- read_csv("/Users/srojascabal/Desktop/000_f990_data/anti_sampl
     propFrgnXpns_2013_100k, ind_yearMrgEq_rtrn
   ) %>%
   filter(
-    !rtrn_state %in% c("PR", "DC")
-  )
+    !rtrn_state %in% c("PR", "DC"),
+    complete.cases(rtrn_state)
+  ) 
 
-# Excluding DC and PR
-anti_states <- nonprofits_anti %>%
-  select(rtrn_state) %>%
-  distinct() %>%
-  filter(
-    !rtrn_state %in% c("PR", "DC")
-  ) %>%
-  pull()
-  
+#   na_df_total <- nonprofits_anti %>%
+#     summarise(across(everything(), ~ sum(is.na(.))))
+
 nonprofits_nonanti <- read_csv("/Users/srojascabal/Desktop/000_f990_data/nonanti_sample_220703.csv",
     col_types = cols(
       ein = col_character(),
@@ -62,59 +57,60 @@ nonprofits_nonanti <- read_csv("/Users/srojascabal/Desktop/000_f990_data/nonanti
       propFrgnXpns_2013_100k, ind_yearMrgEq_rtrn
     ) %>%
   filter(
-    !rtrn_state %in% c("PR", "DC")
-  )
+    !rtrn_state %in% c("PR", "DC", "GU",
+                       "MP", "AS", "AP",
+                       "AE", "VI"),
+    complete.cases(rtrn_state)
+  ) 
+  
+#  na_df_total <- nonprofits_nonanti %>%
+#    summarise(across(everything(), ~ sum(is.na(.))))
 
-state_controls2 <- read_csv("/Users/srojascabal/Desktop/000_f990_data/state_controls.csv",
+#  states_anti <- data.frame(
+#    states = pull(nonprofits_anti, rtrn_state),
+#    df_name = "anti"
+#  ) %>%
+#    distinct()
+#  
+#  states_nonanti <- data.frame(
+#    states = pull(nonprofits_nonanti, rtrn_state),
+#    df_name = "nonanti"
+#  ) %>%
+#    distinct()
+#  
+#  states_to_filter_nonanti <- anti_join(states_nonanti, states_anti, by = c("states"))
+
+state_controls <- read_csv("/Users/srojascabal/Desktop/000_f990_data/state_controls.csv",
     col_types = cols(
       gov_party = col_character(),
+      gov_republican = col_double(),
       state_code = col_character(),
       tax_year = col_character(),
       gdp_state_2012 = col_double(),
       churches = col_double(),
       F990_990EZ = col_double(),    
       rel_orgs = col_double() 
-      )) #%>%
+      )) %>%
     mutate(
       state_religiosity = churches + rel_orgs
     ) %>%
     rename(
       rtrn_state = state_code
     ) %>%
-    select(-churches, -rel_orgs) %>%
-    filter(
-      tax_year %in% c("2013", "2014", "2015",
-                       "2016", "2017", "2018",
-                       "2019", "2020")
-    )
+    select(-churches, -rel_orgs)
 #--------------------------------------------------------
 #--------------------------------------------------------
 # Aggregating data
 #--------------------------------------------------------
-nonprofits <- bind_rows(nonprofits_anti, nonprofits_nonanti) %>%
-  drop_na() %>%
-  filter(
-    !rtrn_state %in% c("VI", "GU", "AE", "AP", "AS", "MP")
-  )
+nonprofits <- bind_rows(nonprofits_anti, nonprofits_nonanti)
 
-  #   na_summary <- nonprofits %>%
-  #     summarise(across(everything(), ~ sum(is.na(.))))
+#     na_df_total <- nonprofits %>%
+#       summarise(across(everything(), ~ sum(is.na(.))))
 
-state13 <- state_controls %>%
-  filter(tax_year == "2013")
-
-state20 <- state_controls %>%
-  filter(tax_year == "2020")
-
-state_anti <- anti_join(
-  state20, state13, by = c("rtrn_state")
-)
-
-
-nonprofits_analysis <- anti_join(
+nonprofits_analysis <- left_join(
   nonprofits, state_controls,
   by = c("tax_year", "rtrn_state")
-) #%>%
+) %>%
   mutate(
     log_frgnXpns_2013_100k = log(frgnXpns_2013_100k)
   )

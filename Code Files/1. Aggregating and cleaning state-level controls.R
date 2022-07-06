@@ -111,6 +111,9 @@ gdp <- read_csv("/Users/srojascabal/Desktop/000_f990_data/SAGDP/SAGDP9N__ALL_ARE
   mutate(
     gdp_state_2012_100k =
       gdp_state_2012*10
+  ) %>%
+  filter(
+    !state_code %in% "DC"
   )
 #-----
 #-----
@@ -132,99 +135,27 @@ gdp <- read_csv("/Users/srojascabal/Desktop/000_f990_data/SAGDP/SAGDP9N__ALL_ARE
 #     From: https://www.openicpsr.org/openicpsr/project/102000/version/V3/view?path=/openicpsr/102000/fcr:versions/V3/united_states_governors_1775_2020.csv&type=file    
 #     To view the citation for the overall project, see http://doi.org/10.3886/E102000V3.
 #----
-gov_party_change <- read_csv("/Users/srojascabal/Desktop/000_f990_data/united_states_governors_1775_2020.csv") %>%
+state_long = c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming")
+state_short = c("AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY")
+
+gov_party_fill <- data.frame(
+  year = rep(tax_year, each=50),
+  state_code = rep(state_short, times = 14),
+  state = rep(state_long, times = 14)
+)
+
+gov_party_raw <- read_csv("/Users/srojascabal/Desktop/000_f990_data/united_states_governors_1775_2020.csv") %>%
   filter(year %in% tax_year) %>%
   select(state, year, party) %>%
-  arrange(state, year) %>%
-  group_by(state, year) %>%
-  mutate(duplicated = n()>1) %>%
-  filter(duplicated == TRUE) %>%
-  distinct() %>%
-  select(state, year) %>%
-  group_by(state, year) %>%
-  mutate(duplicated = n()>1) %>%
-  filter(duplicated == TRUE) %>%
-  select(-duplicated) %>%
-  distinct()
-
-write_csv(gov_party_change, "/Users/srojascabal/Desktop/000_f990_data/gov_party_change.csv")
-
-gov_party_change2 <- read_csv("/Users/srojascabal/Desktop/000_f990_data/gov_party_change.csv") %>%
-  filter(!state %in% c("Puerto Rico", "Virgin Islands"))
-  
-gov_party_distinct <- read_csv("/Users/srojascabal/Desktop/000_f990_data/united_states_governors_1775_2020.csv") %>%
-  filter(year %in% tax_year) %>%
-  select(state, year, party) %>%
-  arrange(state, year) %>%
-  group_by(state, year) %>%
-  mutate(duplicated = n()>1) %>%
-  filter(duplicated == FALSE) %>%
-  select(-duplicated) %>%
   filter(
     !state %in% c("Puerto Rico", "Virgin Islands", "American Samoa", "Guam", "Northern Mariana Islands")
-  ) %>%
-  rename(
-    gov_party = party
   )
 
-gov_party <- bind_rows(gov_party_change2, gov_party_distinct) %>%
-  arrange(state, year) %>%
-  mutate(
-    state_code = case_when(
-      state == "Alabama" ~ "AL",
-      state == "Alaska" ~ "AK",
-      state == "Arizona" ~ "AZ",
-      state == "Arkansas" ~ "AR",
-      state == "California" ~ "CA",
-      state == "Colorado" ~ "CO",
-      state == "Connecticut" ~ "CT",
-      state == "Delaware" ~ "DE",
-      state == "Florida" ~ "FL",
-      state == "Georgia" ~ "GA",
-      state == "Hawaii" ~ "HI",
-      state == "Idaho" ~ "ID",
-      state == "Illinois" ~ "IL",
-      state == "Indiana" ~ "IN",
-      state == "Iowa" ~ "IA",
-      state == "Kansas" ~ "KS",
-      state == "Kentucky" ~ "KY",
-      state == "Louisiana" ~ "LA",
-      state == "Maine" ~ "ME",
-      state == "Maryland" ~ "MD",
-      state == "Massachusetts" ~ "MA",
-      state == "Michigan" ~ "MI",
-      state == "Minnesota" ~ "MN",
-      state == "Mississippi" ~ "MS",
-      state == "Missouri" ~ "MO",
-      state == "Montana" ~ "MT",
-      state == "Nebraska" ~ "NE",
-      state == "Nevada" ~ "NV",
-      state == "New Hampshire" ~ "NH",
-      state == "New Jersey" ~ "NJ",
-      state == "New Mexico" ~ "NM",
-      state == "New York" ~ "NY",
-      state == "North Carolina" ~ "NC",
-      state == "North Dakota" ~ "ND",
-      state == "Ohio" ~ "OH",
-      state == "Oklahoma" ~ "OK",
-      state == "Oregon" ~ "OR",
-      state == "Pennsylvania" ~ "PA",
-      state == "Rhode Island" ~ "RI",
-      state == "South Carolina" ~ "SC",
-      state == "South Dakota" ~ "SD",
-      state == "Tennessee" ~ "TN",
-      state == "Texas" ~ "TX",
-      state == "Utah" ~ "UT",
-      state == "Vermont" ~ "VT",
-      state == "Virginia" ~ "VA",
-      state == "Washington" ~ "WA",
-      state == "West Virginia" ~ "WV",
-      state == "Wisconsin" ~ "WI",
-      state == "Wyoming" ~ "WY")
-    )
+gov_party_incomplete <- full_join(gov_party_fill, gov_party_raw) %>%
+  arrange(state_code, year)
 
 # Exporting to complete manually
-write_csv(gov_party, "/Users/srojascabal/Desktop/000_f990_data/gov_party.csv")
+write_csv(gov_party_incomplete, "/Users/srojascabal/Desktop/000_f990_data/gov_party.csv")
 
 # Importing complete data
 gov_party_complete <- read_csv("/Users/srojascabal/Desktop/000_f990_data/gov_party_complete.csv") %>%
@@ -234,6 +165,9 @@ gov_party_complete <- read_csv("/Users/srojascabal/Desktop/000_f990_data/gov_par
   ) %>%
   mutate(
     tax_year = as.character(tax_year)
+  ) %>%
+  filter(
+    !tax_year %in% "2021"
   )
 #----
 #----
@@ -302,6 +236,24 @@ for (i in 1:length(file_names)){
       state_code = state_names[i]
     )
   
+  years_state <- state_df %>%
+    select(TAX_YR, state_code)
+  
+  years_all <- data.frame(
+    TAX_YR = as.character(tax_year),
+    state_code = state_names[i]
+  )
+  
+  years_missing <- anti_join(years_all, years_state,
+      by = c("TAX_YR")) %>%
+    mutate(
+      Church = 0,
+      F990_or_990EZ = 0,
+      Religious_organization = 0
+    )
+  
+  state_df <- bind_rows(state_df, years_missing)
+  
   assign(paste0("sum_", state_names[i]), state_df)
 }
 
@@ -314,6 +266,10 @@ excempt_orgs <- mget(ls(pattern="^sum_*")) %>%
     F990_990EZ = F990_or_990EZ,
     churches = Church,
     rel_orgs = Religious_organization
+  ) %>%
+  filter(
+    !state_code %in% "DC",
+    !tax_year %in% "2021"
   )
 #----
 #----
@@ -328,9 +284,22 @@ state_level_controls <- inner_join(
 state_controls <- left_join(
   state_level_controls, excempt_orgs, by = c("state_code", "tax_year")
 ) %>%
-  mutate_at(vars(F990_990EZ, churches, rel_orgs),
-            ~replace(., is.na(.), 0))
-summary(state_controls)  
+  mutate(
+    gov_republican = case_when(
+    party == "Republican" ~ 1,
+    party == "Democrat" | party == "Independent" ~ 0
+  )) %>%
+  rename(
+    gov_party = party
+  )
+
+# summary(state_controls) 
+
+#   na_df_total <- state_controls %>%
+#     summarise(across(everything(), ~ sum(is.na(.))))
+#   
+#   na_df <- state_controls %>%
+#    filter(!complete.cases(gov_republican))
 
 # Export
 

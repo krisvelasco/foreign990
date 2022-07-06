@@ -1,7 +1,7 @@
 ---
 title: "Preliminary Models"
 author: "Sebastian Rojas Cabal"
-date: "7/5/2022"
+date: "7/7/2022"
 output: pdf_document
 ---
 
@@ -19,14 +19,15 @@ nonprofits_analysis <- read_csv("/Users/srojascabal/Desktop/000_f990_data/analyt
       tax_year = col_character(),
       anti_lgbtq = col_double(),
       anti_factor = col_factor(),
-      rtrn_state = col_character(),
+      rtrn_state = col_factor(),
       totalXpns_2013_100k = col_double(),
       frgnXpns_2013_100k = col_double(),
       log_frgnXpns_2013_100k = col_double(),
       propFrgnXpns_2013_100k = col_double(),
       ind_yearMrgEq_rtrn = col_double(),
       gdp_state_2012 = col_double(),       
-      gov_party = col_character(),
+      gov_party = col_factor(),
+      gov_republican = col_double(),
       F990_990EZ = col_double(),        
       state_religiosity = col_double())
       )
@@ -34,59 +35,67 @@ nonprofits_analysis <- read_csv("/Users/srojascabal/Desktop/000_f990_data/analyt
 ```{r descriptives, results = "asis", message = FALSE, echo= FALSE}
 stargazer(as.data.frame(nonprofits_analysis), type = 'latex')
 ```
-## Models without controls
-```{r models1_no_controls, results = "asis"}
-# Foreign Expenses
+## Results from Models
+```{r models_totalExp, results = "asis", echo=FALSE}
+# Foreign Expenses, no controls
 model1 <- lm(frgnXpns_2013_100k ~ anti_lgbtq,
              nonprofits_analysis)
 
+# Foreign Expenses, controls
+model2 <- lm(frgnXpns_2013_100k ~ anti_lgbtq + gov_republican + gdp_state_2012 + ind_yearMrgEq_rtrn + F990_990EZ + state_religiosity,
+             nonprofits_analysis)
+
 # Logged Foreign Expenses
 #model2 <- lm(log_frgnXpns_2013_100k ~ anti_lgbtq,
 #             nonprofits_analysis)
 
-# % of Total Expenditures
+# % of Total Expenditures, no controls
 model3 <- lm(propFrgnXpns_2013_100k ~ anti_lgbtq,
              nonprofits_analysis)
 
-stargazer(model1, model3, type = 'latex')
+# % of Total Expenditures
+ model4 <- lm(propFrgnXpns_2013_100k ~ anti_lgbtq +
+                gov_republican +
+                gdp_state_2012 +
+                ind_yearMrgEq_rtrn +
+                F990_990EZ +
+                state_religiosity,
+              nonprofits_analysis)
+
+stargazer(model1, model2, type = 'latex',
+          title = "Foreign Expenditures by Anti-LGBTQ Nonprofits, 2013-2020",
+          covariate.labels = c("Anti-LGBTQ Nonprofit",
+                               "Republican Governor",
+                               "State real GDP",
+                               "Marriage Equality Passed",
+                               "Number of 990- and 990EZ-filing orgs. in State",
+                               "Religiosity of State Population"),
+          dep.var.labels   = c("Total Foreign Expenses"),
+          single.row = TRUE)
 ```
 
-```{r models2_controls, results = "asis"}
-# Foreign Expenses
-model4 <- lm(frgnXpns_2013_100k ~ anti_lgbtq + gov_party + gdp_state_2012 + ind_yearMrgEq_rtrn + F990_990EZ + state_religiosity,
+```{r models_foreignProp, results = "asis", echo=FALSE}
+# % of Total Expenditures, no controls
+model3 <- lm(propFrgnXpns_2013_100k ~ anti_lgbtq,
              nonprofits_analysis)
 
-# Logged Foreign Expenses
-#model2 <- lm(log_frgnXpns_2013_100k ~ anti_lgbtq,
-#             nonprofits_analysis)
-
 # % of Total Expenditures
-# model5 <- lm(propFrgnXpns_2013_100k ~ anti_lgbtq +
-#                gov_party +
-#                gdp_state_2012 +
-#                ind_yearMrgEq_rtrn +
-#                F990_990EZ +
-#                state_religiosity,
-#              nonprofits_analysis)
+ model4 <- lm(propFrgnXpns_2013_100k ~ anti_lgbtq +
+                gov_republican +
+                gdp_state_2012 +
+                ind_yearMrgEq_rtrn +
+                F990_990EZ +
+                state_religiosity,
+              nonprofits_analysis)
 
-stargazer(model4, type = 'latex')
+stargazer(model3, model4, type = 'latex',
+          title = "Foreign Expenditures by Anti-LGBTQ Nonprofits, 2013-2020",
+          covariate.labels = c("Anti-LGBTQ Nonprofit",
+                               "Republican Governor",
+                               "State real GDP",
+                               "Marriage Equality Passed",
+                               "Number of 990- and 990EZ-filing orgs. in State",
+                               "Religiosity of State Population"),
+          dep.var.labels   = c("Foreign Expenses as Proportion of Total Expenses"),
+          single.row = TRUE)
 ```
-## Models with controls
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

@@ -5,7 +5,7 @@ date: "7/3/2022"
 output: pdf_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, echo==FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
@@ -23,13 +23,12 @@ knitr::opts_chunk$set(echo = TRUE)
 * Source: https://www.irs.gov/pub/irs-soi/eo_info.pdf
 * Number of tax-excempt organizations (religious organizations, churchers), per year will be used as indicators of state religisioty.
 * Number of 990 and 990EZ-filing organizations per year will be used as controls.
+* Some states did not have information on filings for all years. For the years without filings, all the values were coded as zero (0).
 
 #### Governor's Party
 * If the governing party changed in any given year, the party value for the year will be that of the party which spent the longest time in office. For example, if there was an election in Nov. and the governing party changed, the party value will correspond to the party in office until the election.
 * Sources:
-  + Kaplan, Jacob. United States Governors 1775-2020: united_states_governors_1775_2020.csv. Ann Arbor, MI: Inter-university Consortium for Political and Social Research [distributor], 2021-01-16. https://doi.org/10.3886/E102000V3-82580
   + National Governors Association: https://www.nga.org/
-
 
 #### GDP by State 
 * State GDP corresponds to the Real GDP by state with NAICS classification. Table number: SAGDP9N.

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.5.23)  7 JUL 2022 00:56
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.5.23)  7 JUL 2022 10:51
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -963,36 +963,94 @@ LaTeX Font Info:    External font `lmex10' loaded for size
 LaTeX Font Info:    External font `lmex10' loaded for size
 (Font)              <5> on input line 80.
 
-Overfull \hbox (36.63365pt too wide) in paragraph at lines 110--135
+Overfull \hbox (1.02281pt too wide) in paragraph at lines 80--103
  [][] 
  []
 
 
-Overfull \hbox (36.63365pt too wide) in paragraph at lines 144--169
- [][] 
- []
-
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 171.
+<Preliminary-Models_files/figure-latex/figures_gdp-1.pdf, id=4, 462.72874pt x 3
+15.1775pt>
+File: Preliminary-Models_files/figure-latex/figures_gdp-1.pdf Graphic file (typ
+e pdf)
+<use Preliminary-Models_files/figure-latex/figures_gdp-1.pdf>
+Package pdftex.def Info: Preliminary-Models_files/figure-latex/figures_gdp-1.pd
+f used on input line 105.
+(pdftex.def)             Requested size: 462.73466pt x 315.18153pt.
 [1
 
-{/usr/local/texlive/2017/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 171.
+{/usr/local/texlive/2017/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
+<Preliminary-Models_files/figure-latex/figures_gdp_100k-1.pdf, id=14, 463.7325p
+t x 315.1775pt>
+File: Preliminary-Models_files/figure-latex/figures_gdp_100k-1.pdf Graphic file
+ (type pdf)
+<use Preliminary-Models_files/figure-latex/figures_gdp_100k-1.pdf>
+Package pdftex.def Info: Preliminary-Models_files/figure-latex/figures_gdp_100k
+-1.pdf used on input line 107.
+(pdftex.def)             Requested size: 463.73842pt x 315.18153pt.
+
+<Preliminary-Models_files/figure-latex/figures_frgnXpns_2013_100k-1.pdf, id=15,
+ 459.7175pt x 315.1775pt>
+File: Preliminary-Models_files/figure-latex/figures_frgnXpns_2013_100k-1.pdf Gr
+aphic file (type pdf)
+<use Preliminary-Models_files/figure-latex/figures_frgnXpns_2013_100k-1.pdf>
+Package pdftex.def Info: Preliminary-Models_files/figure-latex/figures_frgnXpns
+_2013_100k-1.pdf used on input line 109.
+(pdftex.def)             Requested size: 459.74442pt x 315.19595pt.
+[2 <./Preliminary-Models_files/figure-latex/figures_gdp-1.pdf> <./Preliminary-M
+odels_files/figure-latex/figures_gdp_100k-1.pdf>]
+<Preliminary-Models_files/figure-latex/figures_totalXpns_2013_100k-1.pdf, id=34
+, 459.7175pt x 315.1775pt>
+File: Preliminary-Models_files/figure-latex/figures_totalXpns_2013_100k-1.pdf G
+raphic file (type pdf)
+<use Preliminary-Models_files/figure-latex/figures_totalXpns_2013_100k-1.pdf>
+Package pdftex.def Info: Preliminary-Models_files/figure-latex/figures_totalXpn
+s_2013_100k-1.pdf used on input line 111.
+(pdftex.def)             Requested size: 459.74442pt x 315.19595pt.
+
+<Preliminary-Models_files/figure-latex/figures_state_religiosity-1.pdf, id=35, 
+459.7175pt x 315.1775pt>
+File: Preliminary-Models_files/figure-latex/figures_state_religiosity-1.pdf Gra
+phic file (type pdf)
+<use Preliminary-Models_files/figure-latex/figures_state_religiosity-1.pdf>
+Package pdftex.def Info: Preliminary-Models_files/figure-latex/figures_state_re
+ligiosity-1.pdf used on input line 113.
+(pdftex.def)             Requested size: 459.74442pt x 315.19595pt.
+[3 <./Preliminary-Models_files/figure-latex/figures_frgnXpns_2013_100k-1.pdf> <
+./Preliminary-Models_files/figure-latex/figures_totalXpns_2013_100k-1.pdf>]
+<Preliminary-Models_files/figure-latex/figures_F990_990EZ-1.pdf, id=54, 459.717
+5pt x 315.1775pt>
+File: Preliminary-Models_files/figure-latex/figures_F990_990EZ-1.pdf Graphic fi
+le (type pdf)
+<use Preliminary-Models_files/figure-latex/figures_F990_990EZ-1.pdf>
+Package pdftex.def Info: Preliminary-Models_files/figure-latex/figures_F990_990
+EZ-1.pdf used on input line 115.
+(pdftex.def)             Requested size: 459.74442pt x 315.19595pt.
+
+Overfull \hbox (4.07928pt too wide) in paragraph at lines 127--154
+ [][] 
+ []
+
+[4 <./Preliminary-Models_files/figure-latex/figures_state_religiosity-1.pdf> <.
+/Preliminary-Models_files/figure-latex/figures_F990_990EZ-1.pdf>]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 191.
+[5]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 191.
 (./Preliminary-Models.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 171.
-Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 171.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 191.
+Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 191.
 
 LaTeX Warning: There were multiply-defined labels.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 171.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 191.
  ) 
 Here is how much of TeX's memory you used:
- 12873 strings out of 492995
- 185755 string characters out of 6132704
- 299614 words of memory out of 5000000
- 16216 multiletter control sequences out of 15000+600000
+ 12907 strings out of 492995
+ 187632 string characters out of 6132704
+ 295644 words of memory out of 5000000
+ 16240 multiletter control sequences out of 15000+600000
  46069 words of font info for 63 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 34i,10n,38p,336b,343s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 34i,10n,38p,336b,364s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2017/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/usr/lo
 cal/texlive/2017/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/usr/local/texlive/20
 17/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}{/usr/local/texlive/2017/texmf-d
@@ -1005,10 +1063,10 @@ al/texlive/2017/texmf-dist/fonts/type1/public/lm/lmr17.pfb></usr/local/texlive/
 ist/fonts/type1/public/lm/lmri10.pfb></usr/local/texlive/2017/texmf-dist/fonts/
 type1/public/lm/lmsy10.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/publ
 ic/lm/lmsy7.pfb>
-Output written on Preliminary-Models.pdf (2 pages, 142372 bytes).
+Output written on Preliminary-Models.pdf (5 pages, 201248 bytes).
 PDF statistics:
- 68 PDF objects out of 1000 (max. 8388607)
- 54 compressed objects within 1 object stream
- 8 named destinations out of 1000 (max. 500000)
- 12297 words of extra memory for PDF output out of 14400 (max. 10000000)
+ 128 PDF objects out of 1000 (max. 8388607)
+ 93 compressed objects within 1 object stream
+ 11 named destinations out of 1000 (max. 500000)
+ 12327 words of extra memory for PDF output out of 14400 (max. 10000000)
 

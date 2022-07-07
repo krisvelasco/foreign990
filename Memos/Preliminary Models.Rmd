@@ -12,6 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r prelim, message = FALSE, echo= FALSE}
 library(tidyverse)
 library(stargazer)
+library(gridExtra)
 
 nonprofits_analysis <- read_csv("/Users/srojascabal/Desktop/000_f990_data/analytical_sample_220705.csv",
      col_types = cols(
@@ -30,72 +31,203 @@ nonprofits_analysis <- read_csv("/Users/srojascabal/Desktop/000_f990_data/analyt
       gov_republican = col_double(),
       F990_990EZ = col_double(),        
       state_religiosity = col_double())
-      )
+      ) %>%
+  mutate(
+    log_gdp_2012 = log(gdp_state_2012),
+    log_gdp_2012_100k = log(gdp_state_2012_100k),
+    log_frgnXpns_2013_100k = log(frgnXpns_2013_100k+1),
+    log_totalXpns_2013_100k = log(totalXpns_2013_100k+1),
+    log_state_religiosity = log(state_religiosity + 1),
+    log_F990_990EZ = log(F990_990EZ + 1)
+  )
 ```
+
 ```{r descriptives, results = "asis", message = FALSE, echo= FALSE}
 stargazer(as.data.frame(nonprofits_analysis), type = 'latex')
 ```
+
+```{r plots_distribution_logVars, echo=FALSE}
+# GDP
+plot_gdp_2012 <-
+  ggplot(nonprofits_analysis, aes(x = gdp_state_2012)) +
+  geom_density() +
+  labs(
+    title = "GDP by State"
+  )
+
+plot_log_gdp_2012 <-
+  ggplot(nonprofits_analysis, aes(x = log_gdp_2012)) +
+  geom_density() +
+  labs(
+    title = "Logged GDP by State"
+  )
+
+# GDP 100k
+plot_gdp_2012_100k <-
+  ggplot(nonprofits_analysis, aes(x = gdp_state_2012_100k)) +
+  geom_density()  +
+  labs(
+    title = "GDP by State (100k USD)"
+  )
+
+plot_log_gdp_2012_100k <-
+  ggplot(nonprofits_analysis, aes(x = log_gdp_2012_100k)) +
+  geom_density() +
+  labs(
+    title = "Logged GDP by State (100k USD)"
+  )
+
+# Foreign Expenses
+plot_frgnXpns_2013_100k <-
+  ggplot(nonprofits_analysis, aes(x = frgnXpns_2013_100k)) +
+  geom_density()  +
+  labs(
+    title = "Foreign Expenses"
+  )
+
+plot_log_frgnXpns_2013_100k <-
+  ggplot(nonprofits_analysis, aes(x = log_frgnXpns_2013_100k)) +
+  geom_density() +
+  labs(
+    title = "Logged Foreign Expenses"
+  )
+
+# Total Expenses
+plot_totalXpns_2013_100k <-
+  ggplot(nonprofits_analysis, aes(x = totalXpns_2013_100k)) +
+  geom_density() +
+  labs(
+    title = "Total Expenses"
+  )
+
+plot_log_totalXpns_2013_100k <-
+  ggplot(nonprofits_analysis, aes(x = log_totalXpns_2013_100k)) +
+  geom_density() +
+  labs(
+    title = "Logged Total Expenses"
+  )
+
+# State Religiosity
+plot_state_religiosity <-
+  ggplot(nonprofits_analysis, aes(x = state_religiosity)) +
+  geom_density() +
+  labs(
+    title = "Number of Churches and Religious Orgs"
+  )
+
+plot_log_state_religiosity <-
+  ggplot(nonprofits_analysis, aes(x = log_state_religiosity)) +
+  geom_density() +
+  labs(
+    title = "Logged State Religiosity"
+  )
+
+# 990/EZ filers
+plot_F990_990EZ <-
+  ggplot(nonprofits_analysis, aes(x = F990_990EZ)) +
+  geom_density() +
+  labs(
+    title = "Number of F990/EZ Filing Orgs"
+  )
+
+plot_log_F990_990EZ <-
+  ggplot(nonprofits_analysis, aes(x = log_F990_990EZ)) +
+  geom_density() +
+  labs(
+    title = "Logged Nonprofit Activity"
+  )
+```
+
+```{r figures_gdp, echo=FALSE}
+grid.arrange(plot_gdp_2012, plot_log_gdp_2012,
+             ncol = 2) 
+```
+
+```{r figures_gdp_100k, echo=FALSE}
+grid.arrange(plot_gdp_2012_100k, plot_log_gdp_2012_100k,
+             ncol = 2) 
+```
+
+```{r figures_frgnXpns_2013_100k, echo=FALSE}
+grid.arrange(plot_frgnXpns_2013_100k, plot_log_frgnXpns_2013_100k,
+             ncol = 2) 
+```
+
+```{r figures_totalXpns_2013_100k, echo=FALSE}
+grid.arrange(plot_totalXpns_2013_100k, plot_log_totalXpns_2013_100k,
+             ncol = 2) 
+```
+
+```{r figures_state_religiosity, echo=FALSE}
+grid.arrange(plot_state_religiosity, plot_log_state_religiosity,
+             ncol = 2) 
+```
+
+```{r figures_F990_990EZ, echo=FALSE}
+grid.arrange(plot_F990_990EZ, plot_log_F990_990EZ,
+             ncol = 2) 
+```
+
 ## Results from Models
-```{r models_totalExp, results = "asis", echo=FALSE}
-# Foreign Expenses, no controls
-model1 <- lm(frgnXpns_2013_100k ~ anti_lgbtq,
+```{r models, echo=FALSE}
+# Logged Foreign Expenses, no controls
+model1 <- lm(log_frgnXpns_2013_100k ~ anti_lgbtq,
              nonprofits_analysis)
 
-# Foreign Expenses, controls
-model2 <- lm(frgnXpns_2013_100k ~ anti_lgbtq + gov_republican + gdp_state_2012 + ind_yearMrgEq_rtrn + F990_990EZ + state_religiosity,
+# Foreign Expenses, controls + interaction
+model2 <- lm(log_frgnXpns_2013_100k ~ anti_lgbtq + 
+               anti_lgbtq*ind_yearMrgEq_rtrn +
+               gov_republican + 
+               log_gdp_2012 + 
+               ind_yearMrgEq_rtrn + 
+               log_F990_990EZ + 
+               log_state_religiosity + 
+               log_totalXpns_2013_100k,
              nonprofits_analysis)
-
-# Logged Foreign Expenses
-#model2 <- lm(log_frgnXpns_2013_100k ~ anti_lgbtq,
-#             nonprofits_analysis)
 
 # % of Total Expenditures, no controls
 model3 <- lm(propFrgnXpns_2013_100k ~ anti_lgbtq,
              nonprofits_analysis)
 
-# % of Total Expenditures
- model4 <- lm(propFrgnXpns_2013_100k ~ anti_lgbtq +
+# % of Total Expenditures, controls + interaction
+model4 <- lm(propFrgnXpns_2013_100k ~ anti_lgbtq +
+                anti_lgbtq*ind_yearMrgEq_rtrn +
                 gov_republican +
-                gdp_state_2012 +
+                log_gdp_2012 +
                 ind_yearMrgEq_rtrn +
-                F990_990EZ +
-                state_religiosity,
+                log_F990_990EZ +
+                log_state_religiosity,
               nonprofits_analysis)
+```
 
+```{r model_results_TotalExpenses, results = "asis", echo=FALSE}
 stargazer(model1, model2, type = 'latex',
           title = "Foreign Expenditures by Anti-LGBTQ Nonprofits, 2013-2020",
           covariate.labels = c("Anti-LGBTQ Nonprofit",
                                "Republican Governor",
-                               "State real GDP",
+                               "State real GDP (Log)",
                                "Marriage Equality Passed",
-                               "Number of 990- and 990EZ-filing orgs. in State",
-                               "Religiosity of State Population"),
-          dep.var.labels   = c("Total Foreign Expenses"),
+                               "Nonprofit Activity in State (Log)",
+                               "Religiosity of State Population (Log)",
+                               "Org's Total Expenses (Log)",
+                               "Interaction:Anti/Marriage Eq"),
+          dep.var.labels   = c("Log of Total Foreign Expenses"),
           single.row = TRUE)
 ```
 
-```{r models_foreignProp, results = "asis", echo=FALSE}
-# % of Total Expenditures, no controls
-model3 <- lm(propFrgnXpns_2013_100k ~ anti_lgbtq,
-             nonprofits_analysis)
-
-# % of Total Expenditures
- model4 <- lm(propFrgnXpns_2013_100k ~ anti_lgbtq +
-                gov_republican +
-                gdp_state_2012 +
-                ind_yearMrgEq_rtrn +
-                F990_990EZ +
-                state_religiosity,
-              nonprofits_analysis)
-
+```{r model_results_PctnExpenses, results = "asis", echo=FALSE}
 stargazer(model3, model4, type = 'latex',
-          title = "Foreign Expenditures by Anti-LGBTQ Nonprofits, 2013-2020",
-          covariate.labels = c("Anti-LGBTQ Nonprofit",
-                               "Republican Governor",
-                               "State real GDP",
-                               "Marriage Equality Passed",
-                               "Number of 990- and 990EZ-filing orgs. in State",
-                               "Religiosity of State Population"),
-          dep.var.labels   = c("Foreign Expenses as Proportion of Total Expenses"),
-          single.row = TRUE)
+           title = "Foreign Expenses as a Proportion of Total Expenses  by Anti-LGBTQ Nonprofits, 2013-2020",
+           covariate.labels = c("Anti-LGBTQ Nonprofit",
+                                "Republican Governor",
+                                "State real GDP (Log)",
+                                "Marriage Equality Passed",
+                                "Nonprofit Activity in State (Log)",
+                                "Religiosity of State Population (Log)",
+                               "Interaction:Anti/Marriage Eq"),
+           dep.var.labels   = c("Foreign Expenses as Proportion of Total Expenses"),
+           single.row = TRUE)
 ```
+
+
+

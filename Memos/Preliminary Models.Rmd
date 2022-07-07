@@ -13,7 +13,12 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(stargazer)
 library(gridExtra)
+library(lmtest)
+library(sandwich)
+library(lfe)
+```
 
+```{r loading_data, echo=FALSE, message = FALSE}
 nonprofits_analysis <- read_csv("/Users/srojascabal/Desktop/000_f990_data/analytical_sample_220705.csv",
      col_types = cols(
       ein = col_character(),
@@ -168,7 +173,7 @@ grid.arrange(plot_F990_990EZ, plot_log_F990_990EZ,
              ncol = 2) 
 ```
 
-## Results from Models
+## Models without Fixed Effects Robust Standard Errors
 ```{r models, echo=FALSE}
 # Logged Foreign Expenses, no controls
 model1 <- lm(log_frgnXpns_2013_100k ~ anti_lgbtq,
@@ -229,5 +234,54 @@ stargazer(model3, model4, type = 'latex',
            single.row = TRUE)
 ```
 
+```{r models_FE, echo=FALSE}
+# Logged Foreign Expenses, no controls
+model1_fe <- felm(log_frgnXpns_2013_100k ~ anti_lgbtq |
+                  rtrn_state + ein |
+                  0 | 
+                  rtrn_state + ein,
+                  nonprofits_analysis)
 
+# Foreign Expenses, controls
+model2_fe <- felm(log_frgnXpns_2013_100k ~ anti_lgbtq + gov_republican + log_gdp_2012 + ind_yearMrgEq_rtrn + log_F990_990EZ + log_state_religiosity + log_totalXpns_2013_100k |
+                rtrn_state + ein |
+                0 | 
+                rtrn_state + ein,
+                nonprofits_analysis)
+
+# % of Total Expenditures, no controls
+model3_fe <- felm(propFrgnXpns_2013_100k ~ anti_lgbtq |
+                  rtrn_state + ein |
+                  0 | 
+                  rtrn_state + ein,
+                  nonprofits_analysis)
+
+# % of Total Expenditures, controls
+model4_fe <- felm(propFrgnXpns_2013_100k ~ anti_lgbtq + gov_republican + log_gdp_2012 + ind_yearMrgEq_rtrn + log_F990_990EZ + log_state_religiosity + log_totalXpns_2013_100k |
+                rtrn_state + ein |
+                0 | 
+                rtrn_state + ein,
+                nonprofits_analysis)
+
+```
+
+## Total Foreign Expenses (Log), no controls
+```{r modelFE_results_TotalExpenses, echo=FALSE}
+summary(model1_fe)
+```
+
+## Total Foreign Expenses (Log), with  controls
+```{r modelFE_results_TotalExpenses2, echo=FALSE}
+summary(model2_fe)
+```
+
+## % of Total Expenses, no controls
+```{r modelFE_results_PctnExpenses, echo=FALSE}
+summary(model3_fe)
+```
+
+## % of Total Expenses, with  controls
+```{r modelFE_results_PctnExpenses2, echo=FALSE}
+summary(model4_fe)
+```
 

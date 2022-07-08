@@ -1,0 +1,93 @@
+---
+title: 'Figures: Foreign Expenditures by Anti-LGBTQ+ Nonprofits'
+author: "Sebastian Rojas Cabal"
+date: "7/8/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r prelim, message = FALSE, echo= FALSE}
+library(tidyverse)
+library(stargazer)
+library(gridExtra)
+library(lmtest)
+library(sandwich)
+library(lfe)
+library(plm)
+```
+
+```{r loading_data, echo=FALSE, message = FALSE}
+nonprofits_analysis <- read_csv("/Users/srojascabal/Desktop/000_f990_data/analytical_sample_220705.csv",
+     col_types = cols(
+      ein = col_character(),
+      tax_year = col_character(),
+      anti_lgbtq = col_double(),
+      anti_factor = col_factor(),
+      rtrn_state = col_factor(),
+      totalXpns_2013_100k = col_double(),
+      frgnXpns_2013_100k = col_double(),
+      log_frgnXpns_2013_100k = col_double(),
+      propFrgnXpns_2013_100k = col_double(),
+      ind_yearMrgEq_rtrn = col_double(),
+      gdp_state_2012 = col_double(),       
+      gov_party = col_factor(),
+      gov_republican = col_double(),
+      F990_990EZ = col_double(),        
+      state_religiosity = col_double())
+      ) %>%
+  mutate(
+    log_gdp_2012 = log(gdp_state_2012),
+    log_gdp_2012_100k = log(gdp_state_2012_100k),
+    log_frgnXpns_2013_100k = log(frgnXpns_2013_100k+1),
+    log_totalXpns_2013_100k = log(totalXpns_2013_100k+1),
+    log_state_religiosity = log(state_religiosity + 1),
+    log_F990_990EZ = log(F990_990EZ + 1)
+  )
+```
+
+## Foreign Expenses as Proportion of Total Expenses by US Nonprofits, 2013-2020
+```{r figures_proportion, echo=FALSE, message=FALSE}
+nonprofits_analysis %>%
+    mutate(
+      factor_txyr = as.factor(tax_year)
+    ) %>%
+    group_by(factor_txyr, anti_factor) %>%
+    summarise(
+      expenses = mean(propFrgnXpns_2013_100k)
+    ) %>%
+    ggplot() +
+    geom_line(aes(x = factor_txyr, y = expenses, group = anti_factor, color = anti_factor)) +
+    geom_point(aes(x = factor_txyr, y = expenses, color = anti_factor)) +
+    labs(y = "Avg. Foreign Expenses as \nProportion of All Expenses",
+         caption = "N (Non Anti-LGBTQ+): 1,636,682\nN (Anti-LGBTQ+): 5,608\nAmounts in real 2013 USD") +
+    theme_bw() +
+    theme(legend.position = "bottom",
+          axis.title.x=element_blank(),
+          legend.title = element_blank()) +
+   geom_vline(xintercept = 2015, linetype = "dashed", color = "gray29")
+```
+
+## Gross Foreign Expenses by US Nonprofits, 2013-2020
+```{r figures_gross, echo=FALSE, , message=FALSE}
+nonprofits_analysis %>%
+    mutate(
+      factor_txyr = as.factor(tax_year)
+    ) %>%
+    group_by(factor_txyr, anti_factor) %>%
+    summarise(
+      expenses = mean(frgnXpns_2013_100k)
+    ) %>%
+    ggplot() +
+    geom_line(aes(x = factor_txyr, y = expenses, group = anti_factor, color = anti_factor)) +
+    geom_point(aes(x = factor_txyr, y = expenses, color = anti_factor)) +
+    labs(y = "Average Foreign Expenses \n(Hundreds of Thousands of USD)",
+         caption = "N (Non Anti-LGBTQ+): 1,636,682\nN (Anti-LGBTQ+): 5,608\nAmounts in real 2013 USD") +
+    theme_bw() +
+    theme(legend.position = "bottom",
+          axis.title.x=element_blank(),
+          legend.title = element_blank()) +
+   geom_vline(xintercept = 2015, linetype = "dashed", color = "gray29")
+```

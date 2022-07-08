@@ -16,6 +16,7 @@ library(gridExtra)
 library(lmtest)
 library(sandwich)
 library(lfe)
+library(plm)
 ```
 
 ```{r loading_data, echo=FALSE, message = FALSE}
@@ -234,54 +235,124 @@ stargazer(model3, model4, type = 'latex',
            single.row = TRUE)
 ```
 
+## Models with Fixed Effects and Robust Standard Errors
 ```{r models_FE, echo=FALSE}
+anti_nonprofits <- nonprofits_analysis %>%
+  filter(anti_lgbtq == 1)
+
 # Logged Foreign Expenses, no controls
 model1_fe <- felm(log_frgnXpns_2013_100k ~ anti_lgbtq |
                   rtrn_state + ein |
                   0 | 
                   rtrn_state + ein,
-                  nonprofits_analysis)
+                  anti_nonprofits)
 
 # Foreign Expenses, controls
 model2_fe <- felm(log_frgnXpns_2013_100k ~ anti_lgbtq + gov_republican + log_gdp_2012 + ind_yearMrgEq_rtrn + log_F990_990EZ + log_state_religiosity + log_totalXpns_2013_100k |
                 rtrn_state + ein |
                 0 | 
                 rtrn_state + ein,
-                nonprofits_analysis)
+                anti_nonprofits)
 
 # % of Total Expenditures, no controls
 model3_fe <- felm(propFrgnXpns_2013_100k ~ anti_lgbtq |
                   rtrn_state + ein |
                   0 | 
                   rtrn_state + ein,
-                  nonprofits_analysis)
+                  anti_nonprofits)
 
 # % of Total Expenditures, controls
 model4_fe <- felm(propFrgnXpns_2013_100k ~ anti_lgbtq + gov_republican + log_gdp_2012 + ind_yearMrgEq_rtrn + log_F990_990EZ + log_state_religiosity + log_totalXpns_2013_100k |
                 rtrn_state + ein |
                 0 | 
                 rtrn_state + ein,
-                nonprofits_analysis)
+                anti_nonprofits)
 
 ```
 
-## Total Foreign Expenses (Log), no controls
+# Total Foreign Expenses (Log), no controls
 ```{r modelFE_results_TotalExpenses, echo=FALSE}
 summary(model1_fe)
 ```
 
-## Total Foreign Expenses (Log), with  controls
+# Total Foreign Expenses (Log), with  controls
 ```{r modelFE_results_TotalExpenses2, echo=FALSE}
 summary(model2_fe)
 ```
 
-## % of Total Expenses, no controls
+# % of Total Expenses, no controls
 ```{r modelFE_results_PctnExpenses, echo=FALSE}
 summary(model3_fe)
 ```
 
-## % of Total Expenses, with  controls
+# % of Total Expenses, with  controls
 ```{r modelFE_results_PctnExpenses2, echo=FALSE}
 summary(model4_fe)
 ```
 
+## Figures
+
+### Foreign Expenses as Proportion of Total Expenses by US Nonprofits, 2013-2020
+```{r figures_proportion, echo=FALSE, message=FALSE}
+nonprofits_analysis %>%
+    mutate(
+      factor_txyr = as.factor(tax_year)
+    ) %>%
+    group_by(factor_txyr, anti_factor) %>%
+    summarise(
+      expenses = mean(propFrgnXpns_2013_100k)
+    ) %>%
+    ggplot() +
+    geom_line(aes(x = factor_txyr, y = expenses, group = anti_factor, color = anti_factor)) +
+    geom_point(aes(x = factor_txyr, y = expenses, color = anti_factor)) +
+    labs(y = "Avg. Foreign Expenses as \nProportion of All Expenses",
+         caption = "N (Non Anti-LGBTQ+): 1,636,682\nN (Anti-LGBTQ+): 5,608\nAmounts in real 2013 USD") +
+    theme_bw() +
+    theme(legend.position = "bottom",
+          axis.title.x=element_blank(),
+          legend.title = element_blank()) +
+   geom_vline(xintercept = 2015, linetype = "dashed", color = "gray29")
+```
+
+### Gross Foreign Expenses by US Nonprofits, 2013-2020
+```{r figures_gross, echo=FALSE, , message=FALSE}
+nonprofits_analysis %>%
+    mutate(
+      factor_txyr = as.factor(tax_year)
+    ) %>%
+    group_by(factor_txyr, anti_factor) %>%
+    summarise(
+      expenses = mean(frgnXpns_2013_100k)
+    ) %>%
+    ggplot() +
+    geom_line(aes(x = factor_txyr, y = expenses, group = anti_factor, color = anti_factor)) +
+    geom_point(aes(x = factor_txyr, y = expenses, color = anti_factor)) +
+    labs(y = "Average Foreign Expenses \n(Hundreds of Thousands of USD)",
+         caption = "N (Non Anti-LGBTQ+): 1,636,682\nN (Anti-LGBTQ+): 5,608\nAmounts in real 2013 USD") +
+    theme_bw() +
+    theme(legend.position = "bottom",
+          axis.title.x=element_blank(),
+          legend.title = element_blank()) +
+   geom_vline(xintercept = 2015, linetype = "dashed", color = "gray29")
+```
+
+### Anti-LGBTQ+ Nonprofits by State, 2013-2020
+```{r figures_antiOrgsState, echo=FALSE}
+plot_AntiOrgsState <- nonprofits_analysis %>%
+  filter(anti_lgbtq == 1) %>%
+  count(rtrn_state) %>%
+  arrange(n) %>%
+  ggplot(aes(y=n, x=rtrn_state)) +
+  geom_bar(position="dodge", stat = "identity") +
+  coord_flip() +
+  scale_fill_grey(start = 0.8, end = 0.2) +
+  theme_classic() +
+  labs(
+    y = "Number of Anti-LGBTQ+ Nonprofits",
+    x= ""
+  )
+```
+
+```{r echo=FALSE}
+plot_AntiOrgsState
+```

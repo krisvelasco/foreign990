@@ -313,6 +313,13 @@ nonprofits_analysis %>%
           axis.title.x=element_blank(),
           legend.title = element_blank()) +
    geom_vline(xintercept = "2015", linetype = "dashed", color = "gray29")
+
+ggsave("/Users/srojascabal/Desktop/000_f990_data/Plots/prop_national.png",
+       width = 210,
+       height = 145, #A5 (half of A4)
+       units = "mm",
+       dpi = "print"
+)
 ```
 
 ### Gross Foreign Expenses by US Nonprofits, 2013-2020
@@ -335,6 +342,13 @@ nonprofits_analysis %>%
           axis.title.x=element_blank(),
           legend.title = element_blank()) +
    geom_vline(xintercept = "2015", linetype = "dashed", color = "gray29")
+
+ggsave("/Users/srojascabal/Desktop/000_f990_data/Plots/gross_national.png",
+       width = 210,
+       height = 145, #A5 (half of A4)
+       units = "mm",
+       dpi = "print"
+)
 ```
 
 ### Anti-LGBTQ+ Nonprofits by State, 2013-2020

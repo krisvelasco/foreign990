@@ -31,6 +31,7 @@ nonprofits_analysis <- read_csv("/Users/srojascabal/Desktop/000_f990_data/analyt
       frgnXpns_2013_100k = col_double(),
       log_frgnXpns_2013_100k = col_double(),
       propFrgnXpns_2013_100k = col_double(),
+      yearMrgEq_rtrn = col_double(),
       ind_yearMrgEq_rtrn = col_double(),
       gdp_state_2012 = col_double(),       
       gov_party = col_factor(),
@@ -306,12 +307,12 @@ nonprofits_analysis %>%
     geom_line(aes(x = factor_txyr, y = expenses, group = anti_factor, color = anti_factor)) +
     geom_point(aes(x = factor_txyr, y = expenses, color = anti_factor)) +
     labs(y = "Avg. Foreign Expenses as \nProportion of All Expenses",
-         caption = "N (Non Anti-LGBTQ+): 1,636,682\nN (Anti-LGBTQ+): 5,608\nAmounts in real 2013 USD") +
+         caption = "N (Non Anti-LGBTQ+): 1,636,682\nN (Anti-LGBTQ+): 5,608\nAmounts in real 2013 USD\nDashed line indicates the year same-sex marriage was legalized at the federal level") +
     theme_bw() +
     theme(legend.position = "bottom",
           axis.title.x=element_blank(),
           legend.title = element_blank()) +
-   geom_vline(xintercept = 2015, linetype = "dashed", color = "gray29")
+   geom_vline(xintercept = "2015", linetype = "dashed", color = "gray29")
 ```
 
 ### Gross Foreign Expenses by US Nonprofits, 2013-2020
@@ -328,12 +329,12 @@ nonprofits_analysis %>%
     geom_line(aes(x = factor_txyr, y = expenses, group = anti_factor, color = anti_factor)) +
     geom_point(aes(x = factor_txyr, y = expenses, color = anti_factor)) +
     labs(y = "Average Foreign Expenses \n(Hundreds of Thousands of USD)",
-         caption = "N (Non Anti-LGBTQ+): 1,636,682\nN (Anti-LGBTQ+): 5,608\nAmounts in real 2013 USD") +
+         caption = "N (Non Anti-LGBTQ+): 1,636,682\nN (Anti-LGBTQ+): 5,608\nAmounts in real 2013 USD\nDashed line indicates the year same-sex marriage was legalized at the federal level") +
     theme_bw() +
     theme(legend.position = "bottom",
           axis.title.x=element_blank(),
           legend.title = element_blank()) +
-   geom_vline(xintercept = 2015, linetype = "dashed", color = "gray29")
+   geom_vline(xintercept = "2015", linetype = "dashed", color = "gray29")
 ```
 
 ### Anti-LGBTQ+ Nonprofits by State, 2013-2020
@@ -355,4 +356,176 @@ plot_AntiOrgsState <- nonprofits_analysis %>%
 
 ```{r echo=FALSE}
 plot_AntiOrgsState
+```
+
+```{r states_gross_plots, echo = FALSE}
+states_for_selection <- nonprofits_analysis %>%
+  filter(anti_lgbtq == 1) %>%
+  count(rtrn_state) %>%
+  pull(rtrn_state)
+
+state_anti_n <- nonprofits_analysis %>%
+  filter(anti_lgbtq == 1) %>%
+  count(rtrn_state) %>%
+  pull(n)
+
+state_nonanti_n <- nonprofits_analysis %>%
+  filter(anti_lgbtq == 0) %>%
+  count(rtrn_state) %>%
+  pull(n)
+
+state_mrg_eq_yr <- nonprofits_analysis %>%
+  select(rtrn_state, yearMrgEq_rtrn) %>%
+  distinct() %>%
+  pull(yearMrgEq_rtrn)
+
+for (i in 1:length(states_for_selection)) {
+# Defining Elements for Plot
+state <- states_for_selection[i]
+
+state_plot_caption <- paste0(
+  "N (Non Anti-LGBTQ+): ",
+  state_nonanti_n[i],
+  "\nN (Anti-LGBTQ+): ",
+  state_anti_n[i],
+  "\nAmounts in real 2013 USD",
+  "\nDashed line indicates the year same-sex marriage was legalized at the state level"
+)
+
+state_plot_y_lab_gross <- c("Average Foreign Expenses \n(Hundreds of Thousands of USD)")
+
+state_plot_filename_gross <- paste0(
+  "/Users/srojascabal/Desktop/000_f990_data/Plots/",
+       "frgn_gross_",
+       states_for_selection[i],
+       ".png"
+)
+
+state_plot_title <- state
+
+state_plot_subtitle <- paste0(
+  "Same-sex marriage legalized in ",
+  state_mrg_eq_yr[i]
+)
+
+# Plot
+nonprofits_analysis %>%
+    filter(rtrn_state %in% states_for_selection[i]) %>%
+    mutate(
+      factor_txyr = as.factor(tax_year)
+    ) %>%
+    group_by(factor_txyr, anti_factor) %>%
+    summarise(
+      expenses = mean(frgnXpns_2013_100k)
+    ) %>%
+    ggplot() +
+    geom_line(aes(x = factor_txyr, y = expenses, group = anti_factor, color = anti_factor)) +
+    geom_point(aes(x = factor_txyr, y = expenses, color = anti_factor)) +
+    labs(
+      title = state_plot_title,
+      subtitle = state_plot_subtitle,
+      y = state_plot_y_lab_gross,
+      caption = state_plot_caption
+        ) +
+    theme_bw() +
+    theme(legend.position = "bottom",
+          axis.title.x=element_blank(),
+          legend.title = element_blank()) +
+   geom_vline(xintercept = as.character(state_mrg_eq_yr[i]), linetype = "dashed", color = "gray29")
+
+# Saving plot
+ggsave(state_plot_filename_gross,
+       width = 210,
+       height = 145, #A5 (half of A4)
+       units = "mm",
+       dpi = "print"
+)
+}
+```
+
+```{r states_proportion_plots, echo = FALSE}
+states_for_selection <- nonprofits_analysis %>%
+  filter(anti_lgbtq == 1) %>%
+  count(rtrn_state) %>%
+  pull(rtrn_state)
+
+state_anti_n <- nonprofits_analysis %>%
+  filter(anti_lgbtq == 1) %>%
+  count(rtrn_state) %>%
+  pull(n)
+
+state_nonanti_n <- nonprofits_analysis %>%
+  filter(anti_lgbtq == 0) %>%
+  count(rtrn_state) %>%
+  pull(n)
+
+state_mrg_eq_yr <- nonprofits_analysis %>%
+  select(rtrn_state, yearMrgEq_rtrn) %>%
+  distinct() %>%
+  pull(yearMrgEq_rtrn)
+
+
+for (i in 1:length(states_for_selection)) {
+# Defining Elements for Plot
+state <- states_for_selection[i]
+  
+state_plot_y_lab_prop <- c("Avg. Foreign Expenses as \nProportion of All Expenses")
+  
+state_plot_caption <- paste0(
+  "N (Non Anti-LGBTQ+): ",
+  state_nonanti_n[i],
+  "\nN (Anti-LGBTQ+): ",
+  state_anti_n[i],
+  "\nAmounts in real 2013 USD",
+  "\nDashed line indicates the year same-sex marriage was legalized at the state level"
+)  
+  
+state_plot_title <- state
+
+state_plot_subtitle <- paste0(
+  "Same-sex marriage legalized in ",
+  state_mrg_eq_yr[i]
+)
+
+state_plot_filename_prop <- paste0(
+  "/Users/srojascabal/Desktop/000_f990_data/Plots/",
+       "frgn_prop_",
+       state,
+       ".png"
+)
+
+# Plot
+nonprofits_analysis %>%
+    filter(rtrn_state %in% state) %>%  
+    mutate(
+      factor_txyr = as.factor(tax_year)
+    ) %>%
+    group_by(factor_txyr, anti_factor) %>%
+    summarise(
+      expenses = mean(propFrgnXpns_2013_100k)
+    ) %>%
+    ggplot() +
+    geom_line(aes(x = factor_txyr, y = expenses, group = anti_factor, color = anti_factor)) +
+    geom_point(aes(x = factor_txyr, y = expenses, color = anti_factor)) +
+    labs(
+      title = state_plot_title,
+      subtitle = state_plot_subtitle,
+      y = state_plot_y_lab_prop,
+      caption = state_plot_caption
+        ) +
+    theme_bw() +
+    theme(legend.position = "bottom",
+          axis.title.x=element_blank(),
+          legend.title = element_blank()) +
+   geom_vline(xintercept = as.character(state_mrg_eq_yr[i]), linetype = "dashed", color = "gray29")
+
+# Saving plot
+ggsave(state_plot_filename_prop,
+       width = 210,
+       height = 145, #A5 (half of A4)
+       units = "mm",
+       dpi = "print",
+      )
+}
+
 ```

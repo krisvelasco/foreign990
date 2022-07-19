@@ -121,3 +121,9 @@ nonprofits_analysis <- left_join(
 # Export
 write_csv(nonprofits_analysis, "/Users/srojascabal/Desktop/000_f990_data/analytical_sample_220705.csv")
 #--------------------------------------------------------
+
+eins_current <- nonprofits_analysis %>%
+  select(ein, anti_lgbtq) %>%
+  distinct(ein)
+
+write_csv(eins_current, "/Users/srojascabal/Desktop/000_f990_data/eins_analyticalsample_220714.csv")

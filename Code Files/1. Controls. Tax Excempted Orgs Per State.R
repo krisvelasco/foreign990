@@ -1,20 +1,22 @@
 ## Project: Nonprofit Foreign Expenditures
 
-## Overview: 
+## Overview:
+# State-level controls.
+# Tax-excempt organizations and churches per state, 2008-2018
 
+## Source
+#   Business Master Files from Urban Institute
+#       https://nccs-data.urban.org/data.php?ds=bmf
+#   UI codebook. For selection and cleaning.
+#       https://nccs-data.urban.org/dd2.php?close=1&form=BMF+08/2016
 
-## Last updated: July 19th by Sebastian Rojas Cabal
+## Last updated: July 20th by Sebastian Rojas Cabal
 #--------------------------------------------------------
 #--------------------------------------------------------
 # Loading packages
 #--------------------------------------------------------
 library(tidyverse)
 #--------------------------------------------------------
-#--------------------------------------------------------
-# Importing Business Master Files from Urban Institute
-#     https://nccs-data.urban.org/data.php?ds=bmf
-# UI codebook. For selection and cleaning.
-#     https://nccs-data.urban.org/dd2.php?close=1&form=BMF+08/2016
 #--------------------------------------------------------
 #--------------------------------------------------------
 # Data import and cleaning

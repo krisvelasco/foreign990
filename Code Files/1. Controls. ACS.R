@@ -29,7 +29,7 @@ concepts <- data.frame(
  concept = unique(vars0818$concept)
 )
 
-# Education vars
+# Education variables
 educ <- concepts %>%
   mutate(
     educ = str_match(concept, "EDUCATION")
@@ -51,7 +51,7 @@ attainment_vars <- attainment$variable
 atnmnt_select <- c("B15003_001", "B15003_021", "B15003_022", "B15003_023", "B15003_024",
                    "B15003_025")
 
-# Place of birth
+# Place of birth/Foreign born
 pob <- concepts %>%
   mutate(
     pob = str_match(concept, "PLACE OF BIRTH")
@@ -71,7 +71,7 @@ frgnborn <- vars0818 %>%
 frgnborn_vars <- frgnborn$variable
 frgnborn_select <- c("C05002_001" , "C05002_008")
 
-# Population
+# Total population
 pop <- concepts %>%
   mutate(
     pop = str_match(concept, "POPULATION")
@@ -93,6 +93,9 @@ population_vars <- population$variable
 acs_years <- c("2008", "2009", "2010", "2011", "2012", "2013", "2014",
                "2015", "2016", "2017", "2018")
 
+#--------------------------------------------------------
+# Retrieving yearly data from tidycensys and computing values
+#--------------------------------------------------------
 # Prop of population over 25 with AB or more schooling, by state, 2008-2018
 for (i in 1:length(acs_years)) {
   population_year <- get_acs(
@@ -204,7 +207,9 @@ frgnborn_states <- mget(ls(pattern="^frgnborn_\\d\\d\\d\\d")) %>%
     number = row_number()
   )
 
-# Controls from ACS
+#--------------------------------------------------------
+# Joining the eductaion, migration, and population data
+#--------------------------------------------------------
 controls_acs <- left_join(college_states, frgnborn_states) %>%
   left_join(population_states) %>%
   select(-number) %>%
@@ -263,5 +268,12 @@ controls_acs <- left_join(college_states, frgnborn_states) %>%
       GEOID == "56" ~	"WY",  
     )
   )
+
+#--------------------------------------------------------
+# Exporting the control variables from the ACS
+#--------------------------------------------------------
+write_csv(controls_acs,
+          "/Volumes/SRC_FILES/0000_F990 Project/000_f990_data/acs_2008_2018.csv")
+
 
 

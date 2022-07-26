@@ -19,7 +19,8 @@ library(tidyverse)
 #--------------------------------------------------------
 #--------------------------------------------------------
 #--------------------------------------------------------
-# Data import and cleaning
+# Data will be imported by years using loops.
+# Vectors below correspond to the names of files for each year
 #--------------------------------------------------------
 file_master <- c("/Volumes/SRC_FILES/0000_F990 Project/000_f990_data/bmf/")
 file_names <- list.files(file_master)
@@ -33,81 +34,66 @@ file_names <- list.files(file_master)
   files_15 <- c("bmf.bm1502.csv", "bmf.bm1504.csv", "bmf.bm1505.csv", "bmf.bm1507.csv", "bmf.bm1509.csv", "bmf.bm1511.csv", "bmf.bm1512.csv")  
   files_16 <- c("bmf.bm1602.csv", "bmf.bm1603.csv", "bmf.bm1604.csv", "bmf.bm1608.csv")
   files_17 <- c("bmf.bm1709.csv", "bmf.bm1712.csv")
+
 #--------------------------------------------------------
 # 2008
 #--------------------------------------------------------
-  colnames(bmf_08_01)
-  colnames(bmf_08_04)
-  colnames(bmf_08_06)
-  colnames(bmf_08_10)
-  colnames(bmf_08_12)
   
-  bmf08_01 <- bmf_08_01 %>%
-    select(EIN, STATE, SUBSECCD, FNDNCD, TAXPER, OutNCCS, YEAR) %>%
-    rename(OUT = OutNCCS) %>%
-    mutate(
-      OUT = case_when(
-        is.na(OUT) == TRUE ~ "IN",
-        is.na(OUT) != TRUE ~ "OUT"
-      )
-    ) %>%
-    filter(
-      OUT == "IN"
-    ) %>%
-    drop_na(TAXPER, YEAR) %>%
-    select(-OUT)
-  
-  bmf08_04 <- bmf_08_04 %>%
-    select(EIN, STATE, SUBSECCD, FNDNCD, TAXPER, OUTNCCS, YEAR) %>%
-    filter(OUTNCCS == "IN") %>%
-    drop_na(TAXPER, YEAR) %>%
-    select(-OUTNCCS)
-  
-  bmf08_06 <- bmf_08_06 %>%
-    select(EIN, STATE, SUBSECCD, FNDNCD, TAXPER, OutNCCS, YEAR) %>%
-    rename(OUT = OutNCCS) %>%
-    mutate(
-      OUT = case_when(
-        is.na(OUT) == TRUE ~ "IN",
-        is.na(OUT) != TRUE ~ "OUT"
-      )
-    ) %>%
-    filter(
-      OUT == "IN"
-    ) %>%
-    drop_na(TAXPER, YEAR) %>%
-    select(-OUT)
-  
-  bmf08_10 <- bmf_08_10 %>%
-    select(EIN, STATE, SUBSECCD, FNDNCD, TAXPER, OUTNCCS, YEAR) %>%
-    filter(OUTNCCS == "IN") %>%
-    drop_na(TAXPER, YEAR) %>%
-    select(-OUTNCCS)
-  
-  bmf08_12 <- bmf_08_12 %>%
-    select(EIN, STATE, SUBSECCD, FNDNCD, TAXPER, OUTNCCS, YEAR) %>%
-    filter(OUTNCCS == "IN") %>%
-    drop_na(TAXPER, YEAR) %>%
-    select(-OUTNCCS)
-  
-  bmf_08 <- mget(ls(pattern="^bmf08*")) %>%
-    bind_rows() %>%
-    distinct()
-#--------------------------------------------------------
-# 2011
-#--------------------------------------------------------
-  
-  for (i in 1:length(files_11)){
-    bmf_year <- str_sub(files_11, 7, 8)
-    bmf_month <- str_sub(files_11, 9, 10)
+  for (i in 1:length(files_08)){
+    bmf_year <- str_sub(files_08, 7, 8)
+    bmf_month <- str_sub(files_08, 9, 10)
     
-    # Figure out a way of knowing which variable name it has
-    
-    path <- paste0(file_master, files_11[i])
+    path <- paste0(file_master, files_08[i])
     
     bmf <- read_csv(path) %>%
       filter(SUBSECCD == "03") %>%
-      mutate(YEAR = str_sub(TAXPER, 1, 4)) %>%
+      mutate(YEAR = str_sub(TAXPER, 1, 4))
+    
+    names(bmf) <- toupper(names(bmf))    
+    
+    bmf <- bmf %>%
+      select(EIN, STATE, SUBSECCD, FNDNCD, TAXPER, OUTNCCS, YEAR) %>%
+          mutate(
+            OUTNCCS = case_when(
+              is.na(OUTNCCS) == TRUE ~ "IN",
+              is.na(OUTNCCS) == FALSE ~ OUTNCCS
+            )
+          ) %>%
+      filter(OUTNCCS == "IN") %>%
+      drop_na(TAXPER, YEAR) %>%
+      select(-OUTNCCS)
+      
+    df_name <- paste0("bmf_", bmf_year[i], "_", bmf_month[i])
+    
+    assign(df_name, bmf)
+  }
+  
+  bmf_08 <- mget(ls(pattern="^bmf_08_*")) %>%
+    bind_rows() %>%
+    distinct()
+
+# Data frames for bmf_08_01 and bmf_08_06 there is a problem with the values in the
+# OUTNCCS variable. There are no values with "IN". Only "OUT" and NAs.
+# We assume that every observation with an otherwise complete row but an NA
+# for the OUTNCCS variable means it's IN.
+
+#--------------------------------------------------------
+# 2009
+#--------------------------------------------------------
+  
+  for (i in 1:length(files_09)){
+    bmf_year <- str_sub(files_09, 7, 8)
+    bmf_month <- str_sub(files_09, 9, 10)
+    
+    path <- paste0(file_master, files_09[i])
+    
+    bmf <- read_csv(path) %>%
+      filter(SUBSECCD == "03") %>%
+      mutate(YEAR = str_sub(TAXPER, 1, 4))
+    
+    names(bmf) <- toupper(names(bmf))    
+    
+    bmf <- bmf %>%
       select(EIN, STATE, SUBSECCD, FNDNCD, TAXPER, OUTNCCS, YEAR) %>%
       filter(OUTNCCS == "IN") %>%
       drop_na(TAXPER, YEAR) %>%
@@ -118,50 +104,38 @@ file_names <- list.files(file_master)
     assign(df_name, bmf)
   }
   
-  colnames(bmf_10_01)
-  colnames(bmf_10_04)
-  colnames(bmf_10_05)
-  colnames(bmf_10_07)
-  colnames(bmf_10_08)
-  colnames(bmf_10_11)
+  bmf_09 <- mget(ls(pattern="^bmf_09_*")) %>%
+    bind_rows() %>%
+    distinct()
   
-  bmf10_01 <- bmf_10_01 %>%
-    select(EIN, STATE, SUBSECCD, FNDNCD, TAXPER, OUTNCCS, YEAR) %>%
-    filter(OUTNCCS == "IN") %>%
-    drop_na(TAXPER, YEAR) %>%
-    select(-OUTNCCS)
+#--------------------------------------------------------
+# 2010
+#--------------------------------------------------------
   
-  bmf10_04 <- bmf_10_04 %>%
-    select(EIN, STATE, SUBSECCD, FNDNCD, TAXPER, OUTNCCS, YEAR) %>%
-    filter(OUTNCCS == "IN") %>%
-    drop_na(TAXPER, YEAR) %>%
-    select(-OUTNCCS)
+  for (i in 1:length(files_10)){
+    bmf_year <- str_sub(files_10, 7, 8)
+    bmf_month <- str_sub(files_10, 9, 10)
+    
+    path <- paste0(file_master, files_10[i])
+    
+    bmf <- read_csv(path) %>%
+      filter(SUBSECCD == "03") %>%
+      mutate(YEAR = str_sub(TAXPER, 1, 4))
+    
+    names(bmf) <- toupper(names(bmf))    
+    
+    bmf <- bmf %>%
+      select(EIN, STATE, SUBSECCD, FNDNCD, TAXPER, OUTNCCS, YEAR) %>%
+      filter(OUTNCCS == "IN") %>%
+      drop_na(TAXPER, YEAR) %>%
+      select(-OUTNCCS)
+    
+    df_name <- paste0("bmf_", bmf_year[i], "_", bmf_month[i])
+    
+    assign(df_name, bmf)
+  }
   
-  bmf10_05 <- bmf_10_05 %>%
-    select(EIN, STATE, SUBSECCD, FNDNCD, TAXPER, OUTNCCS, YEAR) %>%
-    filter(OUTNCCS == "IN") %>%
-    drop_na(TAXPER, YEAR) %>%
-    select(-OUTNCCS)
-  
-  bmf10_07 <- bmf_10_07 %>%
-    select(EIN, STATE, SUBSECCD, FNDNCD, TAXPER, OUTNCCS, YEAR) %>%
-    filter(OUTNCCS == "IN") %>%
-    drop_na(TAXPER, YEAR) %>%
-    select(-OUTNCCS)
-  
-  bmf10_08 <- bmf_10_08 %>%
-    select(EIN, STATE, SUBSECCD, FNDNCD, TAXPER, OUTNCCS, YEAR) %>%
-    filter(OUTNCCS == "IN") %>%
-    drop_na(TAXPER, YEAR) %>%
-    select(-OUTNCCS)
-  
-  bmf10_11 <- bmf_10_11 %>%
-    select(EIN, STATE, SUBSECCD, FNDNCD, TAXPER, OUTNCCS, YEAR) %>%
-    filter(OUTNCCS == "IN") %>%
-    drop_na(TAXPER, YEAR) %>%
-    select(-OUTNCCS)
-  
-  bmf_10 <- mget(ls(pattern="^bmf10*")) %>%
+  bmf_10 <- mget(ls(pattern="^bmf_10_*")) %>%
     bind_rows() %>%
     distinct()
 #--------------------------------------------------------
@@ -400,6 +374,8 @@ for (i in 1:length(files_17)){
 # You'll have to remove all elements that are not the
 # yearly data frames whose name also begins with "bmf_"
 
+rm(bmf_year, bmf_month)  
+  
 # Making sure all the variable types are the same
 bmf_08 <- bmf_08 %>%
     mutate(
@@ -511,12 +487,22 @@ bmf_18 <- bmf_18 %>%
     YEAR = as.character(YEAR)
   )
 
+bmf_19 <- bmf_19 %>%
+  mutate(
+    EIN = as.character(EIN),
+    STATE = as.character(STATE),
+    SUBSECCD = as.character(SUBSECCD),
+    FNDNCD = as.character(FNDNCD),
+    TAXPER  = as.character(TAXPER), 
+    YEAR = as.character(YEAR)
+  )
+
 # Binding all yearly data frames
 bmf_all <- mget(ls(pattern="^bmf_*")) %>%
   bind_rows()
 
 filter_years <- as.character(c(2008, 2009, 2010, 2011, 2012, 2013,
-                  2014, 2015, 2016, 2017, 2018))
+                  2014, 2015, 2016, 2017, 2018, 2019))
 state_short = c("AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY")
 
 bmf_clean <- bmf_all %>%
@@ -527,7 +513,7 @@ bmf_clean <- bmf_all %>%
       FNDNCD == "10" ~ 1,
       FNDNCD != "10" ~ 0
     ),
-    excempt_org = case_when(
+    exempt_org = case_when(
       FNDNCD != "10" ~ 1,
       FNDNCD == "10" ~ 0
     )
@@ -537,10 +523,10 @@ bmf_clean <- bmf_all %>%
     STATE %in% state_short
   )
 
-excempt_orgs <- bmf_clean %>%
+exempt_orgs <- bmf_clean %>%
   group_by(YEAR, STATE) %>%
   summarise(
-    EXCEMPT_ORGS = sum(excempt_org),
+    EXEMPT_ORGS = sum(exempt_org),
     CHURCHES = sum(church)
   )
 #--------------------------------------------------------
@@ -548,9 +534,9 @@ excempt_orgs <- bmf_clean %>%
 # Data export
 #--------------------------------------------------------
 # Tax-excempt orgs and churches by state, per year
-write_csv(excempt_orgs,
-          "/Volumes/SRC_FILES/0000_F990 Project/000_f990_data/bmf_excempt_orgs_state_years.csv")
+write_csv(exempt_orgs,
+          "/Volumes/SRC_FILES/0000_F990 Project/000_f990_data/bmf_exempt_orgs_state_years.csv")
 
-# BMF clean, 2008-2018
+# BMF clean, 2008-2019
 write_csv(bmf_clean,
-          "/Volumes/SRC_FILES/0000_F990 Project/000_f990_data/bmf_2008_2018.csv")
+          "/Volumes/SRC_FILES/0000_F990 Project/000_f990_data/bmf_2008_2019.csv")

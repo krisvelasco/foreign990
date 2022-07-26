@@ -91,12 +91,12 @@ population <- vars0818 %>%
 population_vars <- population$variable
 
 acs_years <- c("2008", "2009", "2010", "2011", "2012", "2013", "2014",
-               "2015", "2016", "2017", "2018")
+               "2015", "2016", "2017", "2018", "2019")
 
 #--------------------------------------------------------
 # Retrieving yearly data from tidycensys and computing values
 #--------------------------------------------------------
-# Prop of population over 25 with AB or more schooling, by state, 2008-2018
+# Prop of population over 25 with AB or more schooling, by state, 2008-2019
 for (i in 1:length(acs_years)) {
   population_year <- get_acs(
     survey = "acs1",            
@@ -131,7 +131,7 @@ population_states <- mget(ls(pattern="^pop_\\d\\d\\d\\d")) %>%
     number = row_number()
   )
 
-# Prop of population over 25 with AB or more schooling, by state, 2008-2018
+# Prop of population over 25 with AB or more schooling, by state, 2008-2019
 for (i in 1:length(acs_years)) {
   educ_year <- get_acs(
                 survey = "acs1",            
@@ -273,7 +273,7 @@ controls_acs <- left_join(college_states, frgnborn_states) %>%
 # Exporting the control variables from the ACS
 #--------------------------------------------------------
 write_csv(controls_acs,
-          "/Volumes/SRC_FILES/0000_F990 Project/000_f990_data/acs_2008_2018.csv")
+          "/Users/srojascabal/Desktop/000_f990_data/acs_2008_2019.csv")
 
 
 

@@ -100,14 +100,63 @@ state_controls <- read_csv("/Users/srojascabal/Desktop/000_f990_data/state_contr
   rename(
     rtrn_state = state_code
   )
+
+# na_df_total <- state_controls %>%
+#   summarise(across(everything(), ~ sum(is.na(.))))
 #--------------------------------------------------------
 #--------------------------------------------------------
 # Aggregating data
 #--------------------------------------------------------
 nonprofits <- bind_rows(nonprofits_anti, nonprofits_nonanti)
 
-#     na_df_total <- nonprofits %>%
-#       summarise(across(everything(), ~ sum(is.na(.))))
+na_df_total <- data.frame(
+  ein = NA,
+  tax_year = NA,
+  anti_lgbtq = NA,
+  anti_factor = NA,
+  rtrn_state = NA,
+  totalXpns_2013_100k = NA,
+  frgnXpns_2013_100k = NA,
+  propFrgnXpns_2013_100k = NA,
+  yearMrgEq_rtrn = NA,
+  ind_yearMrgEq_rtrn = NA,
+  college_educ_over_25 = NA,
+  frgn_born = NA,
+  state_population = NA,
+  excempt_orgs = NA,
+  rel_orgs = NA,
+  gdp_state_2012 = NA,
+  gdp_state_2012_100k = NA,
+  gov_party = NA,
+  gov_republican = NA
+)
+
+years <- unique(nonprofits$tax_year)
+
+for (i in 1:length(years)) {
+
+  nonprofits_year <- nonprofits %>%
+    filter(tax_year == years[i])
+  
+  state_controls_year <- state_controls %>%
+    filter(tax_year == years[i])
+  
+  analytical_sample_year <- left_join(nonprofits_year, state_controls_year,
+                                      by = c("tax_year", "rtrn_state"))
+  
+  na_df_year <- analytical_sample_year %>%
+         summarise(across(everything(), ~ sum(is.na(.))))
+  
+  na_df_total <- bind_rows(na_df_total, na_df_year)
+  
+  df_name <- paste0(years[i], "_sample")
+  
+  assign(df_name, analytical_sample_year)
+}
+
+
+
+
 
 nonprofits_analysis <- left_join(
   nonprofits, state_controls,

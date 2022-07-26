@@ -5,7 +5,7 @@
 #   controls to create the analytical sample for the
 #   preliminary models.
 
-## Last updated: July 25th by Sebastian Rojas Cabal
+## Last updated: July 26th by Sebastian Rojas Cabal
 #--------------------------------------------------------
 #--------------------------------------------------------
 # Loading packages
@@ -38,8 +38,8 @@ nonprofits_anti <- read_csv("/Users/srojascabal/Desktop/000_f990_data/anti_sampl
     complete.cases(rtrn_state)
   ) 
 
-#   na_df_total <- nonprofits_anti %>%
-#     summarise(across(everything(), ~ sum(is.na(.))))
+na_npanti_total <- nonprofits_anti %>%
+     summarise(across(everything(), ~ sum(is.na(.))))
 
 nonprofits_nonanti <- read_csv("/Users/srojascabal/Desktop/000_f990_data/nonanti_sample_220703.csv",
     col_types = cols(
@@ -66,8 +66,8 @@ nonprofits_nonanti <- read_csv("/Users/srojascabal/Desktop/000_f990_data/nonanti
     complete.cases(rtrn_state)
   ) 
   
-#  na_df_total <- nonprofits_nonanti %>%
-#    summarise(across(everything(), ~ sum(is.na(.))))
+  na_npnonanti_total <- nonprofits_nonanti %>%
+    summarise(across(everything(), ~ sum(is.na(.))))
 
 #  states_anti <- data.frame(
 #    states = pull(nonprofits_anti, rtrn_state),
@@ -83,14 +83,14 @@ nonprofits_nonanti <- read_csv("/Users/srojascabal/Desktop/000_f990_data/nonanti
 #  
 #  states_to_filter_nonanti <- anti_join(states_nonanti, states_anti, by = c("states"))
 
-state_controls <- read_csv("/Users/srojascabal/Desktop/000_f990_data/state_controls_0725.csv",
+state_controls <- read_csv("/Users/srojascabal/Desktop/000_f990_data/state_controls_0726.csv",
     col_types = cols(
       tax_year = col_character(),
       state_code = col_character(),
       college_educ_over_25 = col_double(),
       frgn_born = col_double(),
       state_population = col_double(),
-      excempt_orgs = col_double(),
+      exempt_orgs = col_double(),
       rel_orgs = col_double(),
       gdp_state_2012 = col_double(),
       gdp_state_2012_100k = col_double(),
@@ -101,62 +101,14 @@ state_controls <- read_csv("/Users/srojascabal/Desktop/000_f990_data/state_contr
     rtrn_state = state_code
   )
 
-# na_df_total <- state_controls %>%
-#   summarise(across(everything(), ~ sum(is.na(.))))
+ na_controls_total <- state_controls %>%
+   summarise(across(everything(), ~ sum(is.na(.))))
 #--------------------------------------------------------
 #--------------------------------------------------------
 # Aggregating data
 #--------------------------------------------------------
-nonprofits <- bind_rows(nonprofits_anti, nonprofits_nonanti)
-
-na_df_total <- data.frame(
-  ein = NA,
-  tax_year = NA,
-  anti_lgbtq = NA,
-  anti_factor = NA,
-  rtrn_state = NA,
-  totalXpns_2013_100k = NA,
-  frgnXpns_2013_100k = NA,
-  propFrgnXpns_2013_100k = NA,
-  yearMrgEq_rtrn = NA,
-  ind_yearMrgEq_rtrn = NA,
-  college_educ_over_25 = NA,
-  frgn_born = NA,
-  state_population = NA,
-  excempt_orgs = NA,
-  rel_orgs = NA,
-  gdp_state_2012 = NA,
-  gdp_state_2012_100k = NA,
-  gov_party = NA,
-  gov_republican = NA
-)
-
-years <- unique(nonprofits$tax_year)
-
-for (i in 1:length(years)) {
-
-  nonprofits_year <- nonprofits %>%
-    filter(tax_year == years[i])
-  
-  state_controls_year <- state_controls %>%
-    filter(tax_year == years[i])
-  
-  analytical_sample_year <- left_join(nonprofits_year, state_controls_year,
-                                      by = c("tax_year", "rtrn_state"))
-  
-  na_df_year <- analytical_sample_year %>%
-         summarise(across(everything(), ~ sum(is.na(.))))
-  
-  na_df_total <- bind_rows(na_df_total, na_df_year)
-  
-  df_name <- paste0(years[i], "_sample")
-  
-  assign(df_name, analytical_sample_year)
-}
-
-
-
-
+nonprofits <- bind_rows(nonprofits_anti, nonprofits_nonanti) %>%
+   filter(tax_year != "2020")
 
 nonprofits_analysis <- left_join(
   nonprofits, state_controls,
@@ -165,9 +117,12 @@ nonprofits_analysis <- left_join(
   mutate(
     log_frgnXpns_2013_100k = log(frgnXpns_2013_100k)
   )
+
+na_analysis_total <- nonprofits_analysis %>%
+  summarise(across(everything(), ~ sum(is.na(.))))
 #--------------------------------------------------------
 # Export
-write_csv(nonprofits_analysis, "/Users/srojascabal/Desktop/000_f990_data/analytical_sample_220725.csv")
+write_csv(nonprofits_analysis, "/Users/srojascabal/Desktop/000_f990_data/analytical_sample_220726.csv")
 #--------------------------------------------------------
 
 eins_current <- nonprofits_analysis %>%

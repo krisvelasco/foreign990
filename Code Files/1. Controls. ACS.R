@@ -2,15 +2,15 @@
 
 ## Overview:
 #   State-level controls.
-#     % immigrant by state, 2008-2018
-#     % college educated by state, 2008-2018
-#     population by state, 2008-2018
+#     % immigrant by state, 2008-2019
+#     % college educated by state, 2008-2019
+#     population by state, 2008-2019
 
 ## Source:
 #   American Community Studies, through tidycensus
 #     https://walker-data.com/tidycensus/index.html
 
-## Last updated: July 25th by Sebastian Rojas Cabal
+## Last updated: July 26th by Sebastian Rojas Cabal
 #--------------------------------------------------------
 #--------------------------------------------------------
 # Loading packages
@@ -207,12 +207,21 @@ frgnborn_states <- mget(ls(pattern="^frgnborn_\\d\\d\\d\\d")) %>%
     number = row_number()
   )
 
+college_states <- college_states %>%
+  select(-number)
+
+frgnborn_states <- frgnborn_states %>%
+  select(-number)
+
+population_states <- population_states %>%
+  select(-number)
+
 #--------------------------------------------------------
 # Joining the eductaion, migration, and population data
 #--------------------------------------------------------
-controls_acs <- left_join(college_states, frgnborn_states) %>%
+controls_acs <- left_join(college_states, frgnborn_states,
+                          by = c("year", "GEOID", "NAME")) %>%
   left_join(population_states) %>%
-  select(-number) %>%
   mutate(
     state = case_when(
       GEOID == "01" ~	"AL",

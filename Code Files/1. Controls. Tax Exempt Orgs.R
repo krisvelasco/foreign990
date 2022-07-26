@@ -10,7 +10,7 @@
 #   UI codebook. For selection and cleaning.
 #       https://nccs-data.urban.org/dd2.php?close=1&form=BMF+08/2016
 
-## Last updated: July 20th by Sebastian Rojas Cabal
+## Last updated: July 26th by Sebastian Rojas Cabal
 #--------------------------------------------------------
 #--------------------------------------------------------
 # Loading packages

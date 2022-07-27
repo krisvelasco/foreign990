@@ -5,7 +5,7 @@
 #   controls to create the analytical sample for the
 #   preliminary models.
 
-## Last updated: July 26th by Sebastian Rojas Cabal
+## Last updated: July 27th by Sebastian Rojas Cabal
 #--------------------------------------------------------
 #--------------------------------------------------------
 # Loading packages
@@ -15,7 +15,7 @@ library(tidyverse)
 #--------------------------------------------------------
 # Importing data
 #--------------------------------------------------------
-nonprofits_anti <- read_csv("/Users/srojascabal/Desktop/000_f990_data/anti_sample_220703.csv",
+nonprofits_anti <- read_csv("/Users/srojascabal/Desktop/000_f990_data/anti_sample_220727.csv",
       col_types = cols(
         ein = col_character(),
         tax_year = col_character(),
@@ -25,23 +25,51 @@ nonprofits_anti <- read_csv("/Users/srojascabal/Desktop/000_f990_data/anti_sampl
         totalXpns_2013_100k = col_double(),
         frgnXpns_2013_100k = col_double(),
         propFrgnXpns_2013_100k = col_double(),
+        totalXpns_2012_100k = col_double(),
+        frgnXpns_2012_100k = col_double(),
+        propFrgnXpns_2012_100k = col_double(),
         yearMrgEq_rtrn = col_double(),
         ind_yearMrgEq_rtrn = col_double())
       ) %>%
   select(
     ein, tax_year, anti_lgbtq, anti_factor,
     rtrn_state, totalXpns_2013_100k, frgnXpns_2013_100k,
-    propFrgnXpns_2013_100k, yearMrgEq_rtrn, ind_yearMrgEq_rtrn
+    propFrgnXpns_2013_100k, totalXpns_2012_100k, frgnXpns_2012_100k,
+    propFrgnXpns_2012_100k, yearMrgEq_rtrn, ind_yearMrgEq_rtrn
   ) %>%
   filter(
     !rtrn_state %in% c("PR", "DC"),
     complete.cases(rtrn_state)
   ) 
 
+# July 03 data
+#nonprofits_anti <- read_csv("/Users/srojascabal/Desktop/000_f990_data/anti_sample_220703.csv",
+#                            col_types = cols(
+#                              ein = col_character(),
+#                              tax_year = col_character(),
+#                              anti_lgbtq = col_double(),
+#                              anti_factor = col_factor(),
+#                              rtrn_state = col_character(),
+#                              totalXpns_2013_100k = col_double(),
+#                              frgnXpns_2013_100k = col_double(),
+#                              propFrgnXpns_2013_100k = col_double(),
+#                              yearMrgEq_rtrn = col_double(),
+#                              ind_yearMrgEq_rtrn = col_double())
+#) %>%
+#  select(
+#    ein, tax_year, anti_lgbtq, anti_factor,
+#    rtrn_state, totalXpns_2013_100k, frgnXpns_2013_100k,
+#    propFrgnXpns_2013_100k, yearMrgEq_rtrn, ind_yearMrgEq_rtrn
+#  ) %>%
+#  filter(
+#    !rtrn_state %in% c("PR", "DC"),
+#    complete.cases(rtrn_state)
+#  )
+
 na_npanti_total <- nonprofits_anti %>%
      summarise(across(everything(), ~ sum(is.na(.))))
 
-nonprofits_nonanti <- read_csv("/Users/srojascabal/Desktop/000_f990_data/nonanti_sample_220703.csv",
+nonprofits_nonanti <- read_csv("/Users/srojascabal/Desktop/000_f990_data/nonanti_sample_220727.csv",
     col_types = cols(
       ein = col_character(),
       tax_year = col_character(),
@@ -51,20 +79,50 @@ nonprofits_nonanti <- read_csv("/Users/srojascabal/Desktop/000_f990_data/nonanti
       totalXpns_2013_100k = col_double(),
       frgnXpns_2013_100k = col_double(),
       propFrgnXpns_2013_100k = col_double(),
+      totalXpns_2012_100k = col_double(),
+      frgnXpns_2012_100k = col_double(),
+      propFrgnXpns_2012_100k = col_double(),
       yearMrgEq_rtrn = col_double(),
       ind_yearMrgEq_rtrn = col_double())
+) %>%
+  select(
+    ein, tax_year, anti_lgbtq, anti_factor,
+    rtrn_state, totalXpns_2013_100k, frgnXpns_2013_100k,
+    propFrgnXpns_2013_100k, totalXpns_2012_100k, frgnXpns_2012_100k,
+    propFrgnXpns_2012_100k, yearMrgEq_rtrn, ind_yearMrgEq_rtrn
   ) %>%
-    select(
-      ein, tax_year, anti_lgbtq, anti_factor,
-      rtrn_state, totalXpns_2013_100k, frgnXpns_2013_100k,
-      propFrgnXpns_2013_100k, yearMrgEq_rtrn, ind_yearMrgEq_rtrn
-    ) %>%
   filter(
     !rtrn_state %in% c("PR", "DC", "GU",
                        "MP", "AS", "AP",
                        "AE", "VI"),
     complete.cases(rtrn_state)
-  ) 
+  )
+
+# July 03, 2022
+# nonprofits_nonanti <- read_csv("/Users/srojascabal/Desktop/000_f990_data/nonanti_sample_220703.csv",
+#                                col_types = cols(
+#                                  ein = col_character(),
+#                                  tax_year = col_character(),
+#                                  anti_lgbtq = col_double(),
+#                                  anti_factor = col_factor(),
+#                                  rtrn_state = col_character(),
+#                                  totalXpns_2013_100k = col_double(),
+#                                  frgnXpns_2013_100k = col_double(),
+#                                  propFrgnXpns_2013_100k = col_double(),
+#                                  yearMrgEq_rtrn = col_double(),
+#                                  ind_yearMrgEq_rtrn = col_double())
+# ) %>%
+#   select(
+#     ein, tax_year, anti_lgbtq, anti_factor,
+#     rtrn_state, totalXpns_2013_100k, frgnXpns_2013_100k,
+#     propFrgnXpns_2013_100k, yearMrgEq_rtrn, ind_yearMrgEq_rtrn
+#   ) %>%
+#   filter(
+#     !rtrn_state %in% c("PR", "DC", "GU",
+#                        "MP", "AS", "AP",
+#                        "AE", "VI"),
+#     complete.cases(rtrn_state)
+#   ) 
   
   na_npnonanti_total <- nonprofits_nonanti %>%
     summarise(across(everything(), ~ sum(is.na(.))))
@@ -113,16 +171,42 @@ nonprofits <- bind_rows(nonprofits_anti, nonprofits_nonanti) %>%
 nonprofits_analysis <- left_join(
   nonprofits, state_controls,
   by = c("tax_year", "rtrn_state")
-) %>%
-  mutate(
-    log_frgnXpns_2013_100k = log(frgnXpns_2013_100k)
-  )
+)
 
 na_analysis_total <- nonprofits_analysis %>%
   summarise(across(everything(), ~ sum(is.na(.))))
 #--------------------------------------------------------
+# New Variables
+#   Indicator of whether or not the org spent money abroad that year
+#   Winsorized Total and Foreign Expenses (to the 95th and 99th percentile)
+#   Logged State GDP
+#   Logged Foreign Expenses
+#   Logged Total Expenses
+#   Logged # of Religious Organizations by State
+#   Logged # of Tax Exempt Organizations by State
+#--------------------------------------------------------
+nonprofits_analysis <- nonprofits_analysis %>%
+  mutate(
+    spends_abroad = case_when(
+      frgnXpns_2012_100k > 0 ~ 1,
+      frgnXpns_2012_100k == 0 ~ 0
+    ),
+    winsor_totalXpns_2012_99 = Winsorize(totalXpns_2012_100k, probs=c(0.00, 0.99)),
+    winsor_totalXpns_2012_95 = Winsorize(totalXpns_2012_100k, probs=c(0.00, 0.95)),
+    winsor_frgnXpns_2012_99 = Winsorize(frgnXpns_2012_100k, probs=c(0.00, 0.99)),
+    winsor_frgnXpns_2012_95 = Winsorize(frgnXpns_2012_100k, probs=c(0.00, 0.95)),
+    log_gdp_2012 = log(gdp_state_2012),
+    log_gdp_2012_100k = log(gdp_state_2012_100k),
+    log_frgnXpns_2012_100k_95 = log(frgnXpns_2013_100k+1),
+    log_frgnXpns_2012_100k_99 = log(winsor_frgnXpns_2012_95+1),
+    log_totalXpns_2012_100k_95 = log(winsor_totalXpns_2012_99+1),
+    log_totalXpns_2012_100k_99 = log(winsor_totalXpns_2012_95+1),
+    log_rel_orgs = log(rel_orgs +1),
+    log_exempt_orgs = log(exempt_orgs+1)
+  )
+#--------------------------------------------------------
 # Export
-write_csv(nonprofits_analysis, "/Users/srojascabal/Desktop/000_f990_data/analytical_sample_220726.csv")
+write_csv(nonprofits_analysis, "/Users/srojascabal/Desktop/000_f990_data/analytical_sample_220727.csv")
 #--------------------------------------------------------
 
 eins_current <- nonprofits_analysis %>%

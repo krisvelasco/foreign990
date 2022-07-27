@@ -4,7 +4,7 @@
 #   This file cleans the dirty data set created in
 #   1. Data Aggregation_Form 990 and anti LGBTQ indicator
 
-## Last updated: June 30th by Sebastian Rojas Cabal
+## Last updated: July 27th by Sebastian Rojas Cabal
 #--------------------------------------------------------
 # Preliminaries
 #   Loading packages
@@ -12,7 +12,6 @@
 library(tidyverse)
 library(lubridate)
 library(readxl)
-library(stringr)
 #--------------------------------------------------------
 #--------------------------
 # Data import
@@ -34,6 +33,9 @@ dups <- dirty_data %>% count(ein, tax_year) %>%
   group_by(ein, tax_year) %>%
   select(ein, tax_year, dup)
 
+# Adding them to the joint data
+joindf_dups <- inner_join(dirty_data, dups, by = c("ein", "tax_year"))
+
 dup_data <- joindf_dups %>%
   select(
     ein, tax_year, rtrn_timestmp, dup
@@ -51,9 +53,6 @@ dup_data <- joindf_dups %>%
 #
 #max_money <- dirty_data %>%
 #  filter(pt9_totalFrgnGrnts == 4160760803)
-
-# Adding them to the joint data
-joindf_dups <- inner_join(dirty_data, dups, by = c("ein", "tax_year"))
 #--------------------------
 #--------------------------
 # Cleaning some relevant variables and adding new ones
@@ -117,6 +116,17 @@ anti_frgnxpns_clean <- frgnxpns %>%
         tax_year == 2019 ~ totalXpns/(232.957/255.657),
         tax_year == 2020 ~ totalXpns/(232.957/258.811)
       ),
+    totalXpns_2012 =
+      case_when(
+        tax_year == 2013 ~ totalXpns/(229.594/232.957),
+        tax_year == 2014 ~ totalXpns/(229.594/236.736),
+        tax_year == 2015 ~ totalXpns/(229.594/237.017),
+        tax_year == 2016 ~ totalXpns/(229.594/240.007),
+        tax_year == 2017 ~ totalXpns/(229.594/245.120),
+        tax_year == 2018 ~ totalXpns/(229.594/251.107),
+        tax_year == 2019 ~ totalXpns/(229.594/255.657),
+        tax_year == 2020 ~ totalXpns/(229.594/258.811)
+      ),
     frgnXpns_2013 =
       case_when(
         tax_year == 2013 ~ frgnXpns/(232.957/232.957),
@@ -127,6 +137,17 @@ anti_frgnxpns_clean <- frgnxpns %>%
         tax_year == 2018 ~ frgnXpns/(232.957/251.107),
         tax_year == 2019 ~ frgnXpns/(232.957/255.657),
         tax_year == 2020 ~ frgnXpns/(232.957/258.811)
+      ),
+    frgnXpns_2012 =
+      case_when(
+        tax_year == 2013 ~ frgnXpns/(229.594/232.957),
+        tax_year == 2014 ~ frgnXpns/(229.594/236.736),
+        tax_year == 2015 ~ frgnXpns/(229.594/237.017),
+        tax_year == 2016 ~ frgnXpns/(229.594/240.007),
+        tax_year == 2017 ~ frgnXpns/(229.594/245.120),
+        tax_year == 2018 ~ frgnXpns/(229.594/251.107),
+        tax_year == 2019 ~ frgnXpns/(229.594/255.657),
+        tax_year == 2020 ~ frgnXpns/(229.594/258.811)
       ),
     frgnSrvcs_2013 = 
       case_when(
@@ -139,9 +160,23 @@ anti_frgnxpns_clean <- frgnxpns %>%
         tax_year == 2019 ~ frgnSrvcs/(232.957/255.657),
         tax_year == 2020 ~ frgnSrvcs/(232.957/258.811)
       ),
+    frgnSrvcs_2012 = 
+      case_when(
+        tax_year == 2013 ~ frgnSrvcs/(229.594/232.957),
+        tax_year == 2014 ~ frgnSrvcs/(229.594/236.736),
+        tax_year == 2015 ~ frgnSrvcs/(229.594/237.017),
+        tax_year == 2016 ~ frgnSrvcs/(229.594/240.007),
+        tax_year == 2017 ~ frgnSrvcs/(229.594/245.120),
+        tax_year == 2018 ~ frgnSrvcs/(229.594/251.107),
+        tax_year == 2019 ~ frgnSrvcs/(229.594/255.657),
+        tax_year == 2020 ~ frgnSrvcs/(229.594/258.811)
+      ),
     totalXpns_2013_100k = totalXpns_2013/100000,
     frgnXpns_2013_100k = frgnXpns_2013/100000,
     frgnSrvcs_2013_100k = frgnSrvcs_2013/100000,
+    totalXpns_2012_100k = totalXpns_2012/100000,
+    frgnXpns_2012_100k = frgnXpns_2012/100000,
+    frgnSrvcs_2012_100k = frgnSrvcs_2012/100000,
     propFrgnXpns = frgnXpns/totalXpns,
     propFrgnXpns = case_when(
       is.na(propFrgnXpns) == TRUE ~ 0,
@@ -156,6 +191,16 @@ anti_frgnxpns_clean <- frgnxpns %>%
     propFrgnXpns_2013_100k = case_when(
       is.na(propFrgnXpns_2013_100k) == TRUE ~ 0,
       TRUE ~ propFrgnXpns_2013_100k
+    ),
+    propFrgnXpns_2012 = frgnXpns_2012/totalXpns_2012,
+    propFrgnXpns_2012 = case_when(
+      is.na(propFrgnXpns_2012) == TRUE ~ 0,
+      TRUE ~ propFrgnXpns_2012
+    ),
+    propFrgnXpns_2012_100k = frgnXpns_2012_100k/totalXpns_2012_100k,
+    propFrgnXpns_2012_100k = case_when(
+      is.na(propFrgnXpns_2012_100k) == TRUE ~ 0,
+      TRUE ~ propFrgnXpns_2012_100k
     ),
     yearMrgEq_rtrn = case_when(
       rtrn_state == "AL" ~ 2015,
@@ -308,9 +353,15 @@ for (i in 1:length(tax_year_vector)) {
     totalXpns_2013 = totalXpns/(232.957/cpi_vector[i]),
     frgnXpns_2013 = frgnXpns/(232.957/cpi_vector[i]),
     frgnSrvcs_2013 = frgnSrvcs/(232.957/cpi_vector[i]),
+    totalXpns_2012 = totalXpns/(229.594/cpi_vector[i]),
+    frgnXpns_2012 = frgnXpns/(229.594/cpi_vector[i]),
+    frgnSrvcs_2012 = frgnSrvcs/(229.594/cpi_vector[i]),
     totalXpns_2013_100k = totalXpns_2013/100000,
     frgnXpns_2013_100k = frgnXpns_2013/100000,
     frgnSrvcs_2013_100k = frgnSrvcs_2013/100000,
+    totalXpns_2012_100k = totalXpns_2012/100000,
+    frgnXpns_2012_100k = frgnXpns_2012/100000,
+    frgnSrvcs_2012_100k = frgnSrvcs_2012/100000,
     propFrgnXpns = frgnXpns/totalXpns,
     propFrgnXpns = case_when(
       is.na(propFrgnXpns) == TRUE ~ 0,
@@ -325,6 +376,16 @@ for (i in 1:length(tax_year_vector)) {
     propFrgnXpns_2013_100k = case_when(
       is.na(propFrgnXpns_2013_100k) == TRUE ~ 0,
       TRUE ~ propFrgnXpns_2013_100k
+    ),
+    propFrgnXpns_2012 = frgnXpns_2012/totalXpns_2012,
+    propFrgnXpns_2012 = case_when(
+      is.na(propFrgnXpns_2012) == TRUE ~ 0,
+      TRUE ~ propFrgnXpns_2012
+    ),
+    propFrgnXpns_2012_100k = frgnXpns_2012_100k/totalXpns_2012_100k,
+    propFrgnXpns_2012_100k = case_when(
+      is.na(propFrgnXpns_2012_100k) == TRUE ~ 0,
+      TRUE ~ propFrgnXpns_2012_100k
     ),
     yearMrgEq_rtrn = case_when(
       rtrn_state == "AL" ~ 2015,
@@ -470,6 +531,10 @@ nonanti_frgnxpns_clean <- mget(ls(pattern="^subset_nonanti_")) %>%
 #--------------------------
 # Exporting the data
 #-------------------------- 
+# July 3, 2022 data
 write_csv(anti_frgnxpns_clean, "/Users/srojascabal/Desktop/000_f990_data/anti_sample_220703.csv")
 write_csv(nonanti_frgnxpns_clean, "/Users/srojascabal/Desktop/000_f990_data/nonanti_sample_220703.csv")
+# July 27, 2022 data
+write_csv(anti_frgnxpns_clean, "/Users/srojascabal/Desktop/000_f990_data/anti_sample_220727.csv")
+write_csv(nonanti_frgnxpns_clean, "/Users/srojascabal/Desktop/000_f990_data/nonanti_sample_220727.csv")
 #--------------------------

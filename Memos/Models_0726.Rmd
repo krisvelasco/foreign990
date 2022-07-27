@@ -43,6 +43,8 @@ nonprofits_analysis <- read_csv("/Users/srojascabal/Desktop/000_f990_data/analyt
       gov_republican = col_double()
       )) %>%
   mutate(
+    winsor_totalXpns_2012_99 = Winsorize(totalXpns_2012_100k, probs=c(0.00, 0.99)),
+    winsor_totalXpns_2012_95 = Winsorize(totalXpns_2012_100k, probs=c(0.00, 0.95)),
     log_gdp_2012 = log(gdp_state_2012),
     log_gdp_2012_100k = log(gdp_state_2012_100k),
     log_frgnXpns_2013_100k = log(frgnXpns_2013_100k+1),

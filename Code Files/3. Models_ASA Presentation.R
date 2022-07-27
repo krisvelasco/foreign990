@@ -14,6 +14,7 @@ library(DescTools)
 library(lmtest)
 library(sandwich)
 library(stargazer)
+library(ggeffects)
 #--------------------------------------------------------
 #--------------------------------------------------------
 # Data Import
@@ -94,25 +95,74 @@ model2 <- lm(log_frgnXpns_2012_100k_95 ~ anti_lgbtq +
                log_totalXpns_2012_100k_95,
              nonprofits_analysis)
 
-
-a <- coeftest(model2, vcovHC(model2, type = "HC3"))
-
-model2$fitted.values
-
 nonprofits_analysis <- nonprofits_analysis %>%
   mutate(
-    model2_fitted = predict$fitted.values
+    model2_fitted = model2$fitted.values
   )
 
+sample_anti <- nonprofits_analysis %>%
+  filter(
+    anti_lgbtq == 1
+  ) %>%
+  slice_sample(n = 300)
 
+sample_nonanti <- nonprofits_analysis %>%
+  filter(
+    anti_lgbtq == 0
+  ) %>%
+  slice_sample(n = 700)
+
+sample <- bind_rows(sample_anti, sample_nonanti)
+
+robust_se <- coeftest(model2, vcovHC(model2, type = "HC3"))
+
+library(estimatr)
+fit <- lm_robust(log_frgnXpns_2012_100k_95 ~ anti_lgbtq + 
+                      anti_lgbtq*ind_yearMrgEq_rtrn +
+                      gov_republican +
+                      state_population +
+                      frgn_born +
+                      college_educ_over_25 +
+                      log_gdp_2012 + 
+                      ind_yearMrgEq_rtrn + 
+                      log_exempt_orgs + 
+                      log_rel_orgs + 
+                      log_totalXpns_2012_100k_95,
+                    data = nonprofits_analysis)
+tidy(fit)
+
+ggplot(nonprofits_analysis, aes(x = anti_lgbtq, y = log_frgnXpns_2012_100k_95)) +
+  geom_point() +
+  geom_smooth(method = "lm_robust") +
+  theme_bw()
 
 nonprofits_analysis %>%
-  ggplot(aes(x = anti_lgbtq, y = log_frgnXpns_2012_100k_95, color = anti_factor) ) +
-  geom_point() +
-  geom_line(aes(y = model2_fitted), size = 1)
+  mutate(
+    factor_txyr = as.factor(tax_year)
+  ) %>%
+  group_by(factor_txyr, anti_factor) %>%
+  summarise(
+    expenses = mean(model2_fitted)
+  ) %>%
+  ggplot() +
+  geom_line(aes(x = factor_txyr, y = expenses, group = anti_factor, color = anti_factor)) +
+  geom_point(aes(x = factor_txyr, y = expenses, color = anti_factor)) +
+  labs(title = "Avg. Frgn Expenses Based on Fitted Values from Models",
+      y = "Average Foreign Expenses \n(Hundreds of Thousands of USD)",
+       caption = "N (Non Anti-LGBTQ+): 1,636,682\nN (Anti-LGBTQ+): 5,608\nAmounts in real 2012 USD\nDashed line indicates the year same-sex marriage was legalized at the federal level") +
+  theme_bw() +
+  theme(legend.position = "bottom",
+        axis.title.x=element_blank(),
+        legend.title = element_blank()) +
+  geom_vline(xintercept = "2015", linetype = "dashed", color = "gray29")
 
-plot_sample <- nonprofits_analysis %>%
-  slice_sample(weight_by = anti_lgbtq, n = 1000)
+
+
+
+
+me <- ggpredict(model2, "anti_lgbtq")
+
+plot(me)
 
 # % of Total Expenditures, no controls
 model3 <- lm(propFrgnXpns_2012_100k ~ anti_lgbtq,

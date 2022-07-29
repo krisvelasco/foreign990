@@ -67,7 +67,7 @@ nonprofits_analysis <- read_csv("/Users/srojascabal/Desktop/000_f990_data/analyt
 #--------------------------------------------------------
 # Models: Logged Gross Foreign Expenses
 #--------------------------------------------------------
-model_frgnXpns <- lm_robust(log_frgnXpns_2012_100k_99 ~ anti_lgbtq + 
+model_propXpns <- lm_robust(propFrgnXpns_2012_100k ~ anti_lgbtq + 
                                  anti_lgbtq*ind_yearMrgEq_rtrn +
                                  gov_republican +
                                  state_population +
@@ -76,26 +76,25 @@ model_frgnXpns <- lm_robust(log_frgnXpns_2012_100k_99 ~ anti_lgbtq +
                                  log_gdp_2012 + 
                                  ind_yearMrgEq_rtrn + 
                                  log_exempt_orgs + 
-                                 log_rel_orgs + 
-                                 log_totalXpns_2012_100k_99,
+                                 log_rel_orgs,
                                data = nonprofits_analysis)
 
-fitted_frgnXnps <- nonprofits_analysis %>%
+fitted_propXpns <- nonprofits_analysis %>%
   mutate(
-    fit_frgnXnps = model_frgnXpns$fitted.values
+    fit_propXnps = model_propXpns$fitted.values
   ) %>%
   select(
     rtrn_state,
     tax_year,
     yearMrgEq_rtrn,
     anti_factor,
-    fit_frgnXnps
+    fit_propXnps
   )
 
 #--------
 # 2013
 #--------
-fitted_frgnXnps_2013 <- fitted_frgnXnps %>%
+fitted_propXnps_2013 <- fitted_propXpns %>%
   filter(
     yearMrgEq_rtrn == 2013
   ) %>%
@@ -103,22 +102,22 @@ fitted_frgnXnps_2013 <- fitted_frgnXnps %>%
     factor_txyr = as.factor(tax_year)
   )
 
-table(fitted_frgnXnps_2013$anti_factor)
+table(fitted_propXnps_2013$anti_factor)
 
 # Average gross expenses - fitted values
-mean_xsps_2013 <- fitted_frgnXnps_2013 %>%
+prop_xsps_2013 <- fitted_propXnps_2013 %>%
   mutate(
     factor_txyr = as.factor(tax_year)
   ) %>%
   group_by(factor_txyr, anti_factor) %>%
   summarise(
-    mean_expenses = mean(fit_frgnXnps)
+    mean_expenses = mean(fit_propXnps)
   )
 
-plot_2013 <- fitted_frgnXnps_2013 %>%
+plot_2013 <- fitted_propXnps_2013 %>%
   ggplot() +
-  geom_line(data = mean_xsps_2013, aes(x = factor_txyr, y = mean_expenses, group = anti_factor, color = anti_factor), size = 1) +
-  geom_point(aes(x = factor_txyr, y = fit_frgnXnps, color = anti_factor), alpha = 1/10) +
+  geom_line(data = prop_xsps_2013, aes(x = factor_txyr, y = mean_expenses, group = anti_factor, color = anti_factor), size = 1) +
+  geom_point(aes(x = factor_txyr, y = fit_propXnps, color = anti_factor), alpha = 1/10) +
   labs(title = "2013") +
   theme_bw() +
   theme(legend.position = "bottom",
@@ -130,7 +129,7 @@ plot_2013 <- fitted_frgnXnps_2013 %>%
 #--------
 # 2014
 #--------
-fitted_frgnXnps_2014 <- fitted_frgnXnps %>%
+fitted_propXnps_2014 <- fitted_propXnps %>%
   filter(
     yearMrgEq_rtrn == 2014
   ) %>%
@@ -138,22 +137,22 @@ fitted_frgnXnps_2014 <- fitted_frgnXnps %>%
     factor_txyr = as.factor(tax_year)
   )
 
-table(fitted_frgnXnps_2014$anti_factor)
+table(fitted_propXnps_2014$anti_factor)
 
 # Average gross expenses - fitted values
-mean_xsps_2014 <- fitted_frgnXnps_2014 %>%
+prop_xsps_2014 <- fitted_propXnps_2014 %>%
   mutate(
     factor_txyr = as.factor(tax_year)
   ) %>%
   group_by(factor_txyr, anti_factor) %>%
   summarise(
-    mean_expenses = mean(fit_frgnXnps)
+    mean_expenses = mean(fit_propXnps)
   )
 
-plot_2014 <- fitted_frgnXnps_2014 %>%
+plot_2014 <- fitted_propXnps_2014 %>%
   ggplot() +
-  geom_line(data = mean_xsps_2014, aes(x = factor_txyr, y = mean_expenses, group = anti_factor, color = anti_factor), size = 1) +
-  geom_point(aes(x = factor_txyr, y = fit_frgnXnps, color = anti_factor), alpha = 1/10) +
+  geom_line(data = prop_xsps_2014, aes(x = factor_txyr, y = mean_expenses, group = anti_factor, color = anti_factor), size = 1) +
+  geom_point(aes(x = factor_txyr, y = fit_propXnps, color = anti_factor), alpha = 1/10) +
   labs(title = "2014") +
   theme_bw() +
   theme(legend.position = "bottom",
@@ -165,7 +164,7 @@ plot_2014 <- fitted_frgnXnps_2014 %>%
 #--------
 # 2015
 #--------
-fitted_frgnXnps_2015 <- fitted_frgnXnps %>%
+fitted_propXnps_2015 <- fitted_propXnps %>%
   filter(
     yearMrgEq_rtrn == 2015
   ) %>%
@@ -173,21 +172,21 @@ fitted_frgnXnps_2015 <- fitted_frgnXnps %>%
     factor_txyr = as.factor(tax_year)
   )
 
-table(fitted_frgnXnps_2015$anti_factor)
+table(fitted_propXnps_2015$anti_factor)
 
-mean_xsps_2015 <- fitted_frgnXnps_2015 %>%
+prop_xsps_2015 <- fitted_propXnps_2015 %>%
   mutate(
     factor_txyr = as.factor(tax_year)
     ) %>%
   group_by(factor_txyr, anti_factor) %>%
   summarise(
-    mean_expenses = mean(fit_frgnXnps)
+    mean_expenses = mean(fit_propXnps)
   )
 
-plot_2015 <- fitted_frgnXnps_2015 %>%
+plot_2015 <- fitted_propXnps_2015 %>%
   ggplot() +
-  geom_line(data = mean_xsps_2015, aes(x = factor_txyr, y = mean_expenses, group = anti_factor, color = anti_factor), size = 1) +
-  geom_point(aes(x = factor_txyr, y = fit_frgnXnps, color = anti_factor), alpha = 1/10) +
+  geom_line(data = prop_xsps_2015, aes(x = factor_txyr, y = mean_expenses, group = anti_factor, color = anti_factor), size = 1) +
+  geom_point(aes(x = factor_txyr, y = fit_propXnps, color = anti_factor), alpha = 1/10) +
   labs(title = "2015") +
   theme_bw() +
   theme(legend.position = "bottom",

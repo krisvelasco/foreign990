@@ -11,6 +11,7 @@
 # Loading packages
 #--------------------------------------------------------
 library(tidyverse)
+library(DescTools)
 #--------------------------------------------------------
 #--------------------------------------------------------
 # Importing data
@@ -204,6 +205,9 @@ nonprofits_analysis <- nonprofits_analysis %>%
     log_rel_orgs = log(rel_orgs +1),
     log_exempt_orgs = log(exempt_orgs+1)
   )
+
+na_newvars_total <- nonprofits_analysis %>%
+  summarise(across(everything(), ~ sum(is.na(.))))
 #--------------------------------------------------------
 # Export
 write_csv(nonprofits_analysis, "/Users/srojascabal/Desktop/000_f990_data/analytical_sample_220729.csv")

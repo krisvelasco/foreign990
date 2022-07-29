@@ -5,7 +5,7 @@
 #   controls to create the analytical sample for the
 #   preliminary models.
 
-## Last updated: July 27th by Sebastian Rojas Cabal
+## Last updated: July 29th by Sebastian Rojas Cabal
 #--------------------------------------------------------
 #--------------------------------------------------------
 # Loading packages
@@ -197,16 +197,16 @@ nonprofits_analysis <- nonprofits_analysis %>%
     winsor_frgnXpns_2012_95 = Winsorize(frgnXpns_2012_100k, probs=c(0.00, 0.95)),
     log_gdp_2012 = log(gdp_state_2012),
     log_gdp_2012_100k = log(gdp_state_2012_100k),
-    log_frgnXpns_2012_100k_95 = log(frgnXpns_2013_100k+1),
-    log_frgnXpns_2012_100k_99 = log(winsor_frgnXpns_2012_95+1),
-    log_totalXpns_2012_100k_95 = log(winsor_totalXpns_2012_99+1),
-    log_totalXpns_2012_100k_99 = log(winsor_totalXpns_2012_95+1),
+    log_frgnXpns_2012_100k_95 = log(winsor_frgnXpns_2012_95+1),
+    log_frgnXpns_2012_100k_99 = log(winsor_frgnXpns_2012_99+1),
+    log_totalXpns_2012_100k_95 = log(winsor_totalXpns_2012_95+1),
+    log_totalXpns_2012_100k_99 = log(winsor_totalXpns_2012_99+1),
     log_rel_orgs = log(rel_orgs +1),
     log_exempt_orgs = log(exempt_orgs+1)
   )
 #--------------------------------------------------------
 # Export
-write_csv(nonprofits_analysis, "/Users/srojascabal/Desktop/000_f990_data/analytical_sample_220727.csv")
+write_csv(nonprofits_analysis, "/Users/srojascabal/Desktop/000_f990_data/analytical_sample_220729.csv")
 #--------------------------------------------------------
 
 eins_current <- nonprofits_analysis %>%

@@ -208,15 +208,21 @@ exp(0.061)
 0.062899*100
 round(0.062899*100, digits = 2)
 
-mean_frgnXpns <- nonprofits_analysis %>%
-  select(anti_factor,
+mena_winsor <- sample_pro %>%
+  select(org_type,
          winsor_frgnXpns_2012_99,
          propFrgnXpns_2012_100k) %>%
-  group_by(anti_factor) %>%
+  group_by(org_type) %>%
   summarise(
     avg = mean(winsor_frgnXpns_2012_99),
     prop = mean(propFrgnXpns_2012_100k)
   )
+
+(0.58357227*100000)*1027
+59,932,872
+
+(0.03125504*100000)*464
+1,450,234
 
 # Likelihood of Spending Abroad
 exp(1.892)
@@ -226,41 +232,3 @@ exp(0.024)
 1.02429*100
 
 #########
-fit <- lm_robust(log_frgnXpns_2012_100k_95 ~ anti_lgbtq + 
-                   anti_lgbtq*ind_yearMrgEq_rtrn +
-                   gov_republican +
-                   state_population +
-                   frgn_born +
-                   college_educ_over_25 +
-                   log_gdp_2012 + 
-                   ind_yearMrgEq_rtrn + 
-                   log_exempt_orgs + 
-                   log_rel_orgs + 
-                   log_totalXpns_2012_100k_95,
-                 data = nonprofits_analysis)
-tidy(fit)
-
-ggplot(nonprofits_analysis, aes(x = anti_lgbtq, y = log_frgnXpns_2012_100k_95)) +
-  geom_point() +
-  geom_smooth(method = "lm_robust") +
-  theme_bw()
-
-nonprofits_analysis %>%
-  mutate(
-    factor_txyr = as.factor(tax_year)
-  ) %>%
-  group_by(factor_txyr, anti_factor) %>%
-  summarise(
-    expenses = mean(model2_fitted)
-  ) %>%
-  ggplot() +
-  geom_line(aes(x = factor_txyr, y = expenses, group = anti_factor, color = anti_factor)) +
-  geom_point(aes(x = factor_txyr, y = expenses, color = anti_factor)) +
-  labs(title = "Avg. Frgn Expenses Based on Fitted Values from Models",
-       y = "Average Foreign Expenses \n(Hundreds of Thousands of USD)",
-       caption = "N (Non Anti-LGBTQ+): 1,636,682\nN (Anti-LGBTQ+): 5,608\nAmounts in real 2012 USD\nDashed line indicates the year same-sex marriage was legalized at the federal level") +
-  theme_bw() +
-  theme(legend.position = "bottom",
-        axis.title.x=element_blank(),
-        legend.title = element_blank()) +
-  geom_vline(xintercept = "2015", linetype = "dashed", color = "gray29")

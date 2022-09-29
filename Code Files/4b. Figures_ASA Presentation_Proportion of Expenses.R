@@ -125,6 +125,8 @@ bmf <- read_csv("/Users/srojascabal/Desktop/000_f990_data/bmf_2008_2019.csv") %>
     YEAR > 2012
   )
 
+# test
+
 # 00  All organizations except 501(c)(3)
 # 02	Private operating foundation exempt from paying excise taxes on investment income
 # 03	Private operating foundation (other)

@@ -85,7 +85,7 @@ regions_raw <- bind_rows(activities, grants) %>%
 #   There are 44 unique combinations of regions.
 #     For example, for those in which region == "Europe",
 #     we can be certain all countries are in Europe.
-#     If region == "Asia" "Africa", we won't know how much went where
+#     If region == "Asia" "Africa", we won't know how much went where.
 #--------------------------
 
 # Americas

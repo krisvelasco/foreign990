@@ -4,8 +4,9 @@
 #   This file uses Schedule F to find the location (country, region) of recipients of foreign grants by U.S.-based nonprofits.
 
 ## Output:
-#   locations_raw.csv
-#   File very rough data on the regions to which money is being sent.
+#   **region**_raw.csv
+#   Each file contains very rough data on the regions to which money is being sent.
+#   These are only 5 of the 42 unique values in the locations_raw.csv
 
 ## Last updated: Feb. 3 by Sebastian Rojas Cabal
 #--------------------------------------------------------
@@ -74,13 +75,107 @@ regions_raw <- bind_rows(activities, grants) %>%
   arrange(desc(length)) %>%
   mutate(
     region = str_extract_all(f_location, string_regions)
+  ) %>%
+  mutate(region = as.character(region),
+         region2 = str_remove_all(region, "[()\"]"),
+         region2 = case_when(region=="character(0)" ~ "NO REGION INFO",
+                             TRUE ~ region2),
+         region2= str_replace_all(region2, ", ", "_"),
+         region2= case_when(str_detect(region2, "_") == TRUE ~ str_remove(region2, "c"),
+                            TRUE ~ region2),
+         dest_asia_pacific = case_when(str_detect(region2, "Asia|Pacific") == TRUE ~ 1,
+                                       TRUE ~ 0),
+         dest_europe = case_when(str_detect(region2, "Europe") == TRUE ~ 1,
+                                 TRUE ~ 0),
+         dest_africa  = case_when(str_detect(region2, "Africa") == TRUE ~ 1,
+                                  TRUE ~ 0),
+         dest_americas  = case_when(str_detect(region2, "America") == TRUE ~ 1,
+                                    TRUE ~ 0),
+         dest_multi = case_when(dest_asia_pacific + dest_africa + dest_europe + dest_americas > 1 ~ 1,
+                                TRUE ~ 0),
+         dest_total = dest_asia_pacific + dest_africa + dest_europe + dest_americas
   )
+         
+         region=="haracter(0)" ~ "NO REGION INFO"
+         
+         )
+         region2 = str_remove_all(region, "[()]"),
+         region2 = str_remove_all(region, '[\"]')
+         )
+
+
+'[\"]', ''
+  
+           
+           
+           
+           region,
+         region = str_remove_all(""),
+         region2 = case_when(
+           region=="character(0)" ~ "NO REGION INFO",
+           region=="c(Asia", "Pacific")" ~ "NO REGION INFO"
+           region=="c(h)" ~ "NO REGION INFO"
+           region=="c(h)" ~ "NO REGION INFO"
+           region=="c(h)" ~ "NO REGION INFO"
+           region=="c(h)" ~ "NO REGION INFO"
+           region=="c(h)" ~ "NO REGION INFO"
+           region=="c(h)" ~ "NO REGION INFO"
+           region=="c(h)" ~ "NO REGION INFO"
+           region=="character(0)" ~ "NO REGION INFO"
+           region=="character(0)" ~ "NO REGION INFO"
+           region=="character(0)" ~ "NO REGION INFO"
+           region=="character(0)" ~ "NO REGION INFO"
+           region=="character(0)" ~ "NO REGION INFO"
+           region=="character(0)" ~ "NO REGION INFO"
+           region=="character(0)" ~ "NO REGION INFO")
+  )
+
+# Americas
+rgn_americas <- regions_raw %>%
+  filter(region == "America") %>%
+  mutate(region = "Americas") %>%
+  distinct()
+
+# Oceania
+rgn_oceania <- regions_raw %>%
+  filter(region == "Oceania") %>%
+  distinct() %>%
+  mutate(regio = "Oceania")
+
+# Asia
+rgn_asia <- regions_raw %>%
+  filter(region == "Asia") %>%
+  distinct() %>%
+  mutate(region = "Asia")
+
+# Europe
+rgn_europe <- regions_raw %>%
+  filter(region == "Europe") %>%
+  distinct() %>%
+  mutate(region = "Europe")
+
+# Africa
+rgn_africa <- regions_raw %>%
+  filter(region == "Africa") %>%
+  distinct() %>%
+  mutate(region = "Africa")
 
 #--------------------------
 # Exporting locations_raw.csv
 #--------------------------
-# write_csv(regions_raw, "/Volumes/SRC_DATA/000_f990_data/locations_raw.csv")
+write_csv(regions_raw, "/Volumes/SRC_DATA/000_f990_data/locations_raw.csv")
+# Regions
+write_csv(rgn_africa, "/Volumes/SRC_DATA/000_f990_data/africa_raw.csv")
+write_csv(rgn_europe, "/Volumes/SRC_DATA/000_f990_data/europe_raw.csv")
+write_csv(rgn_asia, "/Volumes/SRC_DATA/000_f990_data/asia_raw.csv")
+write_csv(rgn_oceania, "/Volumes/SRC_DATA/000_f990_data/oceania_raw.csv")
+write_csv(rgn_americas, "/Volumes/SRC_DATA/000_f990_data/americas_raw.csv")
 
+################
+################
+################
+################
+################
 #--------------------------
 # Cleaning by rough regions
 #   There are 44 unique combinations of regions.

@@ -26,6 +26,7 @@ library(places)
 # Data import
 #   Activities, individual grants, UN country classification for country strings
 #--------------------------
+options(scipen=999) # Telling R to avoid the scientific notation altogether
 # Part 1
 # NO INFO
 #dirty_f_1 <- read_csv("/Volumes/SRC_DATA/000_f990_data/sched_f_i.csv")
@@ -40,6 +41,9 @@ library(places)
 # Activities
 # Region info available
 dirty_f_activities <- read_csv("/Volumes/SRC_DATA/000_f990_data/sched_f_activities.csv")
+
+
+
 
 # Individual Grants
 # Region info available

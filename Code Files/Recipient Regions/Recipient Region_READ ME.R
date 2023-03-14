@@ -23,7 +23,7 @@
 #       sched_f_activities.csv
 
 #   4. Recipient Region_Plots
-#     Data files created:
+#     Image files created:
 #       Regions_Activities_230207.png
 #       Regions_Cash Grants_230207.png
 #       Regions_Non Cash Grants_230207.png

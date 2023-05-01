@@ -40,7 +40,7 @@ activities <- read_csv("/Volumes/SRC_DATA/000_f990_data/rtrn_activities.csv") %>
   ) %>%
   mutate(
     TotalActivities_americas_2013 = case_when(
-      TotalActivities_americas)
+    TotalActivities_americas)
     TotalActivities_asia_pacific_2013 = TotalActivities_asia_pacific
     TotalActivities_europe_2013 = TotalActivities_europe
     TotalActivities_africa_2013 = TotalActivities_africa

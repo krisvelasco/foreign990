@@ -158,47 +158,6 @@ activities_cln <- dirty_f_activities %>%
     dest_americas  = case_when(str_detect(region2, "america") == TRUE |
                                  str_detect(f_location, string_lower_americas) ~ 1,
                                TRUE ~ 0),
-    dest_americas = case_when(
-        f_location == "europe (including iceland and greenland)" |
-        f_location == "europe/iceland and greenland" |                                             
-        f_location == "europe (including iceland & greenland) - albania, andorra, austria, belgium" |
-        f_location == "europe (including iceland & greenland)" |                                     
-        f_location == "europe including iceland and greenland" |                                     
-        f_location == "europe (including iceland & greenland) -" |
-        f_location == "europe/iceland/greenland" |
-        f_location == "europe (including inceland & greenland)" |                                   
-        f_location == "europe (including iceland & greenland) - albania, andorra, austria, belgiu" |
-        f_location == "europe (including iceland and greenland" |
-        f_location == "europe(including iceland and greenland)" |
-        f_location == "europe ( including iceland and greenland)" |
-        f_location == "europe/inceland/greenland" |
-        f_location == "europe ( including iceland and greenland" |
-        f_location == "europe (including iceland & greenland) - denmark, estonia, france, spain"|
-        f_location == "europe. iceland, greenland, albania, and" |
-        f_location == "europe, iceland, greenland, albania, an" |
-        f_location == "europe(including iceland & greenland)-albania, andorra, austria, belgium" |
-        f_location == "europe (mcludmg iceland and greenland)" |
-        f_location == "europe (incl. iceland and greenland)"|
-        f_location == "europe (including iceland & greenland, albania, andorra, austria, belgium)"|
-        f_location == "europe (including iceland & greenland)-albania, andorra, austria, belgium" |
-        f_location == "europe(including icelane & greenland)" |
-        f_location == "europe vendor(including iceland and greenland)" |
-        f_location == "europe including iceland & greenland" |
-        f_location == "europe (including iceland & greenland)- albania, andorra, austria, belgium" ~ 0,
-        TRUE ~ dest_americas
-    ),
-    dest_asia_pacific = case_when(
-      f_location == "romania" |
-      f_location == "timisoara, romania (europe)" |                                                
-      f_location == "europe (including romania) -" |                                               
-      f_location == "northeastern romania" |
-      f_location == "tulcea, romania" |
-      f_location == "timis county, romania" |
-      f_location == "romania-eu" |         
-      f_location == "e. europe-roman" |
-      f_location ==  "botosani, romania" ~ 0,
-      TRUE ~ dest_asia_pacific
-    ), # the above I corrected because they are only in Europe
     dest_multi = case_when(dest_asia_pacific + dest_africa + dest_europe + dest_americas > 1 ~ 1,
                        TRUE ~ 0),
     dest_asia_pacific = case_when(dest_multi == 1 ~ 0,
@@ -208,7 +167,70 @@ activities_cln <- dirty_f_activities %>%
     dest_europe = case_when(dest_multi == 1 ~ 0,
                            TRUE ~ dest_europe),
     dest_africa = case_when(dest_multi == 1 ~ 0,
-                           TRUE ~ dest_africa),
+                           TRUE ~ dest_africa))
+    
+acts_multi <- activities_cln %>%
+  filter(dest_multi == 1)
+
+acts_noInfo <- activities_cln %>%
+  filter(region2 == "NO REGION INFO")
+
+acts_noInfo_count <- acts_noInfo %>%
+  count(f_location) %>%
+  arrange(desc(n))
+
+africa <- acts_multi %>%
+  filter(region2 == "africa")
+
+length(unique(acts_multi$f_location))
+
+unique(africa$f_location)
+
+
+    # This part makes sure that the region data is accurate.
+    dest_europe = case_when(
+      f_location %in% Europe |
+        f_location %in% AfricaEurope |
+        f_location %in% AsiaEuropeAfrica |
+        f_location %in% AsiaEuropeAfricaAmericas |
+        f_location %in% EuropeAmericas |
+        f_location %in% EuropeAsia |
+        f_location %in% EuropeAsiaAmericas ~ 1,
+      TRUE ~ dest_europe
+    ),
+    dest_africa = case_when(
+      f_location %in% AfricaAmericas |
+        f_location %in% AfricaEurope |
+        f_location %in% AsiaAfrica |
+        f_location %in% AsiaAmericasAfrica |
+        f_location %in% AsiaEuropeAfrica |
+        f_location %in% AsiaEuropeAfricaAmericas ~ 1,
+      TRUE ~ dest_africa
+    ),
+    dest_asia_pacific = case_when(
+      f_location %in% Asia |
+        f_location %in% AsiaAfrica |
+        f_location %in% AsiaAmericas |
+        f_location %in% AsiaAmericasAfrica |
+        f_location %in% AsiaEuropeAfrica |
+        f_location %in% AsiaEuropeAfricaAmericas |
+        f_location %in% EuropeAsia |
+        f_location %in% EuropeAsiaAmericas  ~ 1,
+      TRUE ~ dest_asia_pacific
+    ),
+    dest_americas = case_when(
+      f_location %in% AfricaAmericas |
+        f_location %in% AsiaAmericas |
+        f_location %in% AsiaAmericasAfrica |
+        f_location %in% AsiaEuropeAfricaAmericas |
+        f_location %in% EuropeAmericas |
+        f_location %in% EuropeAsiaAmericas  ~ 1,
+      TRUE ~ dest_americas
+    ),
+    dest_multi = case_when(dest_asia_pacific + dest_africa + dest_europe + dest_americas > 1 ~ 1,
+                           TRUE ~ 0),
+    total_regions = dest_asia_pacific + dest_africa + dest_europe + dest_americas,
+    # Region data is now accurate
     dst_fctr_americas = as.factor(
       case_when(
       dest_americas == 1 ~ "Americas",
@@ -243,21 +265,27 @@ activities_cln <- dirty_f_activities %>%
         dest_americas == 0 & dest_europe == 0 &
         dest_africa == 0 & dest_asia_pacific == 0 ~ "Pending region info"
       )
-    ),
+    ))
+
+# Important to decide: money (RgnTtlExpndtrsAmt) in -, those obs will be deleted, rights?
 activities_americas = case_when(
-  dest_americas == 1 ~ RgnTtlExpndtrsAmt,
+  dest_americas == 1 & dest_multi == 0 ~ RgnTtlExpndtrsAmt,
+  dest_americas == 1 & dest_multi == 1 ~ RgnTtlExpndtrsAmt/total_regions,
   TRUE ~ 0
 ),
 activities_asia_pacific = case_when(
-  dest_asia_pacific == 1 ~ RgnTtlExpndtrsAmt,
+  dest_asia_pacific == 1 & dest_multi == 0 ~ RgnTtlExpndtrsAmt,
+  dest_asia_pacific == 1 & dest_multi == 1 ~ RgnTtlExpndtrsAmt/total_regions,
   TRUE ~ 0
 ),
 activities_europe = case_when(
-  dest_europe == 1 ~ RgnTtlExpndtrsAmt,
+  dest_europe == 1 & dest_multi == 0 ~ RgnTtlExpndtrsAmt,
+  dest_europe == 1 & dest_multi == 1 ~ RgnTtlExpndtrsAmt/total_regions,
   TRUE ~ 0
 ),
 activities_africa = case_when(
-  dest_africa == 1 ~ RgnTtlExpndtrsAmt,
+  dest_africa == 1 ~ & dest_multi == 0 ~ RgnTtlExpndtrsAmt,
+  dest_africa == 1 & dest_multi == 1 ~ RgnTtlExpndtrsAmt/total_regions,
   TRUE ~ 0
 ),
 activities_multi = case_when(
@@ -267,8 +295,11 @@ activities_multi = case_when(
 activities_noInfo = case_when(
   dst_fctr == "Pending region info" ~ RgnTtlExpndtrsAmt,
   TRUE ~ 0
-),
+)
 ) %>%
+  filter(
+    total_regions != 0 # we have to account for total_regions == 0
+  )
   group_by(id_ein) %>% 
   summarise(
     TotalActivities_americas=sum(activities_americas),
@@ -279,7 +310,17 @@ activities_noInfo = case_when(
     TotalActivities_noInfo=sum(activities_noInfo),
     .groups = 'drop'
   )
-#filter(dest_multi == 0) %>% # Taking out obs with multiple regions. They make things hard. Text is behaving weirdly.
+  
+# FOR WHEN WE WANT TO DEAL WITH DATA LOSS OF total_regions == 0
+  missing_regions <- activities_cln %>%
+    filter(
+      total_regions == 0
+    ) %>%
+    group_by(f_location) %>%
+    summarise(
+      total_obs = n()
+    ) %>%
+    arrange(desc(total_obs))
 #--------
 # Checking for duplicates - Activities
 #--------
@@ -308,139 +349,139 @@ length(unique(activities_cln$id_ein))/nrow(activities_cln)
 #--------
 # acts_multi data frame
 #----
-#acts_multi <- dirty_f_activities %>%
-#  select(-id) %>%
-#  mutate(
-#    id_ein = paste0(object_id, ein)
-#  ) %>%
-#  mutate_at(c('RgnTtlExpndtrsAmt'), ~replace_na(.,0)) %>% # replacing NAs with zeros (0)
-#  select(
-#    id_ein, object_id, ein, RgnTxt, RgnTtlExpndtrsAmt
-#  ) %>%
-#  mutate(
-#    f_location = RgnTxt,
-#    f_location = str_to_lower(f_location, locale = "en"),
-#    region = str_extract_all(f_location, string_lower_regions),
-#    region = as.character(region),
-#    region2 = str_remove_all(region, "[()\"]"),
-#    region2 = case_when(region=="character(0)" ~ "NO REGION INFO",
-#                        TRUE ~ region2),
-#    region2= str_replace_all(region2, ", ", "_"),
-#    region2= case_when(str_detect(region2, "_") == TRUE ~ str_remove(region2, "c"),
-#                       TRUE ~ region2),
-#    dest_asia_pacific = case_when(str_detect(region2, "asia|pacific") == TRUE |
-#                                    str_detect(f_location, string_lower_asia) ~ 1,
-#                                  TRUE ~ 0),
-#    dest_europe = case_when(str_detect(region2, "europe") == TRUE |
-#                              str_detect(f_location, string_lower_europe) == TRUE~ 1,
-#                            TRUE ~ 0),
-#    dest_africa  = case_when(str_detect(region2, "africa") == TRUE |
-#                               str_detect(f_location, string_lower_africa) ~ 1,
-#                             TRUE ~ 0),
-#    dest_americas  = case_when(str_detect(region2, "america") == TRUE |
-#                                 str_detect(f_location, string_lower_americas) ~ 1,
-#                               TRUE ~ 0),
-#    dest_americas = case_when(
-#      f_location == "europe (including iceland and greenland)" |
-#        f_location == "europe/iceland and greenland" |                                             
-#        f_location == "europe (including iceland & greenland) - albania, andorra, austria, belgium" |
-#        f_location == "europe (including iceland & greenland)" |                                     
-#        f_location == "europe including iceland and greenland" |                                     
-#        f_location == "europe (including iceland & greenland) -" |
-#        f_location == "europe/iceland/greenland" |
-#        f_location == "europe (including inceland & greenland)" |                                   
-#        f_location == "europe (including iceland & greenland) - albania, andorra, austria, belgiu" |
-#        f_location == "europe (including iceland and greenland" |
-#        f_location == "europe(including iceland and greenland)" |
-#        f_location == "europe ( including iceland and greenland)" |
-#        f_location == "europe/inceland/greenland" ~ 0,
-#      TRUE ~ dest_americas
-#    ),
-#    dest_asia_pacific = case_when(
-#      f_location == "romania" |
-#        f_location == "timisoara, romania (europe)" |                                                
-#        f_location == "europe (including romania) -" |                                               
-#        f_location == "northeastern romania" |
-#        f_location == "tulcea, romania" |
-#        f_location == "timis county, romania" |
-#        f_location == "romania-eu" |         
-#        f_location == "e. europe-roman" ~ 0,
-#      TRUE ~ dest_asia_pacific
-#    ),
-#    dest_multi = case_when(dest_asia_pacific + dest_africa + dest_europe + dest_americas > 1 ~ 1,
-#                           TRUE ~ 0),
-#    dest_total = dest_asia_pacific + dest_africa + dest_europe + dest_americas,
-#    dst_fctr_americas = as.factor(
-#      case_when(
-#        dest_americas == 1 ~ "Americas",
-#        TRUE ~ "Other"
-#      )
-#    ),
-#    dst_fctr_africa = as.factor(
-#      case_when(
-#        dest_africa == 1 ~ "Africa",
-#        TRUE ~ "Other"
-#      )
-#    ),
-#    dst_fctr_europe = as.factor(
-#      case_when(
-#        dest_europe == 1 ~ "Europe",
-#        TRUE ~ "Other"
-#      )
-#    ),
-#    dst_fctr_asia_pacific = as.factor(
-#      case_when(
-#        dest_asia_pacific == 1 ~ "Asia-Pacific",
-#        TRUE ~ "Other"
-#      )
-#    ),
-#    dst_fctr = as.factor(
-#      case_when(
-#        dest_multi == 1 ~ "Multiple regions",
-#        dest_multi == 0 & dest_americas == 1 ~ "Americas",
-#        dest_multi == 0 & dest_africa == 1 ~ "Africa",
-#        dest_multi == 0 & dest_asia_pacific == 1 ~ "Asia-Pacific",
-#        dest_multi == 0 & dest_europe == 1 ~ "Europe",
-#        dest_americas == 0 & dest_europe == 0 &
-#          dest_africa == 0 & dest_asia_pacific == 0 ~ "Pending region info"
-#      )
-#    ),
-#    activities_americas = case_when(
-#      dest_americas == 1 ~ RgnTtlExpndtrsAmt,
-#      TRUE ~ 0
-#    ),
-#    activities_asia_pacific = case_when(
-#      dest_asia_pacific == 1 ~ RgnTtlExpndtrsAmt,
-#      TRUE ~ 0
-#    ),
-#    activities_europe = case_when(
-#      dest_europe == 1 ~ RgnTtlExpndtrsAmt,
-#      TRUE ~ 0
-#    ),
-#    activities_africa = case_when(
-#      dest_africa == 1 ~ RgnTtlExpndtrsAmt,
-#      TRUE ~ 0
-#    ),
-#    activities_multi = case_when(
-#      dest_multi == 1 ~ RgnTtlExpndtrsAmt,
-#      TRUE ~ 0
-#    ),
-#    activities_noInfo = case_when(
-#      dst_fctr == "Pending region info" ~ RgnTtlExpndtrsAmt,
-#      TRUE ~ 0
-#    ),
-#  ) #%>%
-#filter(dest_multi == 0) %>% # Taking out obs with multiple regions. They make things hard. Text is behaving weirdly.
-#  group_by(id_ein) %>% 
-#  summarise(
-#    TotalActivities_americas=sum(activities_americas),
-#    TotalActivities_asia_pacific=sum(activities_asia_pacific),
-#    TotalActivities_europe=sum(activities_europe),
-#    TotalActivities_africa=sum(activities_africa),
-#    TotalActivities_multi=sum(activities_multi),
-#    TotalActivities_noInfo=sum(activities_noInfo),
-#    .groups = 'drop'
-#  )
+acts_multi <- dirty_f_activities %>%
+  select(-id) %>%
+  mutate(
+    id_ein = paste0(object_id, ein)
+  ) %>%
+  mutate_at(c('RgnTtlExpndtrsAmt'), ~replace_na(.,0)) %>% # replacing NAs with zeros (0)
+  select(
+    id_ein, object_id, ein, RgnTxt, RgnTtlExpndtrsAmt
+  ) %>%
+  mutate(
+    f_location = RgnTxt,
+    f_location = str_to_lower(f_location, locale = "en"),
+    region = str_extract_all(f_location, string_lower_regions),
+    region = as.character(region),
+    region2 = str_remove_all(region, "[()\"]"),
+    region2 = case_when(region=="character(0)" ~ "NO REGION INFO",
+                        TRUE ~ region2),
+    region2= str_replace_all(region2, ", ", "_"),
+    region2= case_when(str_detect(region2, "_") == TRUE ~ str_remove(region2, "c"),
+                       TRUE ~ region2),
+    dest_asia_pacific = case_when(str_detect(region2, "asia|pacific") == TRUE |
+                                    str_detect(f_location, string_lower_asia) ~ 1,
+                                  TRUE ~ 0),
+    dest_europe = case_when(str_detect(region2, "europe") == TRUE |
+                              str_detect(f_location, string_lower_europe) == TRUE~ 1,
+                            TRUE ~ 0),
+    dest_africa  = case_when(str_detect(region2, "africa") == TRUE |
+                               str_detect(f_location, string_lower_africa) ~ 1,
+                             TRUE ~ 0),
+    dest_americas  = case_when(str_detect(region2, "america") == TRUE |
+                                 str_detect(f_location, string_lower_americas) ~ 1,
+                               TRUE ~ 0),
+    dest_americas = case_when(
+        f_location == "europe (including iceland and greenland)" |
+        f_location == "europe/iceland and greenland" |                                             
+        f_location == "europe (including iceland & greenland) - albania, andorra, austria, belgium" |
+        f_location == "europe (including iceland & greenland)" |                                     
+        f_location == "europe including iceland and greenland" |                                     
+        f_location == "europe (including iceland & greenland) -" |
+        f_location == "europe/iceland/greenland" |
+        f_location == "europe (including inceland & greenland)" |                                   
+        f_location == "europe (including iceland & greenland) - albania, andorra, austria, belgiu" |
+        f_location == "europe (including iceland and greenland" |
+        f_location == "europe(including iceland and greenland)" |
+        f_location == "europe ( including iceland and greenland)" |
+        f_location == "europe/inceland/greenland" ~ 0,
+      TRUE ~ dest_americas
+    ),
+    dest_asia_pacific = case_when(
+        f_location == "romania" |
+        f_location == "timisoara, romania (europe)" |                                                
+        f_location == "europe (including romania) -" |                                               
+        f_location == "northeastern romania" |
+        f_location == "tulcea, romania" |
+        f_location == "timis county, romania" |
+        f_location == "romania-eu" |         
+        f_location == "e. europe-roman" ~ 0,
+      TRUE ~ dest_asia_pacific
+    ),
+    dest_multi = case_when(dest_asia_pacific + dest_africa + dest_europe + dest_americas > 1 ~ 1,
+                           TRUE ~ 0),
+    dest_total = dest_asia_pacific + dest_africa + dest_europe + dest_americas,
+    dst_fctr_americas = as.factor(
+      case_when(
+        dest_americas == 1 ~ "Americas",
+        TRUE ~ "Other"
+      )
+    ),
+    dst_fctr_africa = as.factor(
+      case_when(
+        dest_africa == 1 ~ "Africa",
+        TRUE ~ "Other"
+      )
+    ),
+    dst_fctr_europe = as.factor(
+      case_when(
+        dest_europe == 1 ~ "Europe",
+        TRUE ~ "Other"
+      )
+    ),
+    dst_fctr_asia_pacific = as.factor(
+      case_when(
+        dest_asia_pacific == 1 ~ "Asia-Pacific",
+        TRUE ~ "Other"
+      )
+    ),
+    dst_fctr = as.factor(
+      case_when(
+        dest_multi == 1 ~ "Multiple regions",
+        dest_multi == 0 & dest_americas == 1 ~ "Americas",
+        dest_multi == 0 & dest_africa == 1 ~ "Africa",
+        dest_multi == 0 & dest_asia_pacific == 1 ~ "Asia-Pacific",
+        dest_multi == 0 & dest_europe == 1 ~ "Europe",
+        dest_americas == 0 & dest_europe == 0 &
+          dest_africa == 0 & dest_asia_pacific == 0 ~ "Pending region info"
+      )
+    ),
+    activities_americas = case_when(
+      dest_americas == 1 ~ RgnTtlExpndtrsAmt,
+      TRUE ~ 0
+    ),
+    activities_asia_pacific = case_when(
+      dest_asia_pacific == 1 ~ RgnTtlExpndtrsAmt,
+      TRUE ~ 0
+    ),
+    activities_europe = case_when(
+      dest_europe == 1 ~ RgnTtlExpndtrsAmt,
+      TRUE ~ 0
+    ),
+    activities_africa = case_when(
+      dest_africa == 1 ~ RgnTtlExpndtrsAmt,
+      TRUE ~ 0
+    ),
+    activities_multi = case_when(
+      dest_multi == 1 ~ RgnTtlExpndtrsAmt,
+      TRUE ~ 0
+    ),
+    activities_noInfo = case_when(
+      dst_fctr == "Pending region info" ~ RgnTtlExpndtrsAmt,
+      TRUE ~ 0
+    ),
+  ) %>%
+filter(dest_multi == 1) #%>% # Taking out obs with multiple regions. They make things hard. Text is behaving weirdly.
+  group_by(id_ein) %>% 
+  summarise(
+    TotalActivities_americas=sum(activities_americas),
+    TotalActivities_asia_pacific=sum(activities_asia_pacific),
+    TotalActivities_europe=sum(activities_europe),
+    TotalActivities_africa=sum(activities_africa),
+    TotalActivities_multi=sum(activities_multi),
+    TotalActivities_noInfo=sum(activities_noInfo),
+    .groups = 'drop'
+  )
 #----
 acts_rgn_id <- activities_cln %>%
   select(id_ein) %>%
@@ -455,129 +496,129 @@ acts_lostID <- acts_dataloss$id_ein
 #----
 # See how the lost data look like
 #----
-#acts_dataloss_df <- dirty_f_activities %>%
-#  select(-id) %>%
-#  mutate(
-#    id_ein = paste0(object_id, ein)
-#  ) %>%
-#  mutate_at(c('RgnTtlExpndtrsAmt'), ~replace_na(.,0)) %>% # replacing NAs with zeros (0)
-#  select(
-#    id_ein, object_id, ein, RgnTxt, RgnTtlExpndtrsAmt
-#  ) %>%
-#  filter(id_ein %in% acts_lostID) %>%
-#  mutate(
-#    f_location = RgnTxt,
-#    f_location = str_to_lower(f_location, locale = "en"),
-#    region = str_extract_all(f_location, string_lower_regions),
-#    region = as.character(region),
-#    region2 = str_remove_all(region, "[()\"]"),
-#    region2 = case_when(region=="character(0)" ~ "NO REGION INFO",
-#                        TRUE ~ region2),
-#    region2= str_replace_all(region2, ", ", "_"),
-#    region2= case_when(str_detect(region2, "_") == TRUE ~ str_remove(region2, "c"),
-#                       TRUE ~ region2),
-#    dest_asia_pacific = case_when(str_detect(region2, "asia|pacific") == TRUE |
-#                                    str_detect(f_location, string_lower_asia) ~ 1,
-#                                  TRUE ~ 0),
-#    dest_europe = case_when(str_detect(region2, "europe") == TRUE |
-#                              str_detect(f_location, string_lower_europe) == TRUE~ 1,
-#                            TRUE ~ 0),
-#    dest_africa  = case_when(str_detect(region2, "africa") == TRUE |
-#                               str_detect(f_location, string_lower_africa) ~ 1,
-#                             TRUE ~ 0),
-#    dest_americas  = case_when(str_detect(region2, "america") == TRUE |
-#                                 str_detect(f_location, string_lower_americas) ~ 1,
-#                               TRUE ~ 0),
-#    dest_americas = case_when(
-#      f_location == "europe (including iceland and greenland)" |
-#        f_location == "europe/iceland and greenland" |                                             
-#        f_location == "europe (including iceland & greenland) - albania, andorra, austria, belgium" |
-#        f_location == "europe (including iceland & greenland)" |                                     
-#        f_location == "europe including iceland and greenland" |                                     
-#        f_location == "europe (including iceland & greenland) -" |
-#        f_location == "europe/iceland/greenland" |
-#        f_location == "europe (including inceland & greenland)" |                                   
-#        f_location == "europe (including iceland & greenland) - albania, andorra, austria, belgiu" |
-#        f_location == "europe (including iceland and greenland" |
-#        f_location == "europe(including iceland and greenland)" |
-#        f_location == "europe ( including iceland and greenland)" |
-#        f_location == "europe/inceland/greenland" ~ 0,
-#      TRUE ~ dest_americas
-#    ),
-#    dest_asia_pacific = case_when(
-#      f_location == "romania" |
-#        f_location == "timisoara, romania (europe)" |                                                
-#        f_location == "europe (including romania) -" |                                               
-#        f_location == "northeastern romania" |
-#        f_location == "tulcea, romania" |
-#        f_location == "timis county, romania" |
-#        f_location == "romania-eu" |         
-#        f_location == "e. europe-roman" ~ 0,
-#      TRUE ~ dest_asia_pacific
-#    ),
-#    dest_multi = case_when(dest_asia_pacific + dest_africa + dest_europe + dest_americas > 1 ~ 1,
-#                           TRUE ~ 0),
-#    dest_total = dest_asia_pacific + dest_africa + dest_europe + dest_americas,
-#    dst_fctr_americas = as.factor(
-#      case_when(
-#        dest_americas == 1 ~ "Americas",
-#        TRUE ~ "Other"
-#      )
-#    ),
-#    dst_fctr_africa = as.factor(
-#      case_when(
-#        dest_africa == 1 ~ "Africa",
-#        TRUE ~ "Other"
-#      )
-#    ),
-#    dst_fctr_europe = as.factor(
-#      case_when(
-#        dest_europe == 1 ~ "Europe",
-#        TRUE ~ "Other"
-#      )
-#    ),
-#    dst_fctr_asia_pacific = as.factor(
-#      case_when(
-#        dest_asia_pacific == 1 ~ "Asia-Pacific",
-#        TRUE ~ "Other"
-#      )
-#    ),
-#    dst_fctr = as.factor(
-#      case_when(
-#        dest_multi == 1 ~ "Multiple regions",
-#        dest_multi == 0 & dest_americas == 1 ~ "Americas",
-#        dest_multi == 0 & dest_africa == 1 ~ "Africa",
-#        dest_multi == 0 & dest_asia_pacific == 1 ~ "Asia-Pacific",
-#        dest_multi == 0 & dest_europe == 1 ~ "Europe",
-#        dest_americas == 0 & dest_europe == 0 &
-#          dest_africa == 0 & dest_asia_pacific == 0 ~ "Pending region info"
-#      )
-#    ),
-#    activities_americas = case_when(
-#      dest_americas == 1 ~ RgnTtlExpndtrsAmt,
-#      TRUE ~ 0
-#    ),
-#    activities_asia_pacific = case_when(
-#      dest_asia_pacific == 1 ~ RgnTtlExpndtrsAmt,
-#      TRUE ~ 0
-#    ),
-#    activities_europe = case_when(
-#      dest_europe == 1 ~ RgnTtlExpndtrsAmt,
-#      TRUE ~ 0
-#    ),
-#    activities_africa = case_when(
-#      dest_africa == 1 ~ RgnTtlExpndtrsAmt,
-#      TRUE ~ 0
-#    ),
-#    activities_multi = case_when(
-#      dest_multi == 1 ~ RgnTtlExpndtrsAmt,
-#      TRUE ~ 0
-#    ),
-#    activities_noInfo = case_when(
-#      dst_fctr == "Pending region info" ~ RgnTtlExpndtrsAmt,
-#      TRUE ~ 0
-#    ),
-#  )
+acts_dataloss_df <- dirty_f_activities %>%
+  select(-id) %>%
+  mutate(
+    id_ein = paste0(object_id, ein)
+  ) %>%
+  mutate_at(c('RgnTtlExpndtrsAmt'), ~replace_na(.,0)) %>% # replacing NAs with zeros (0)
+  select(
+    id_ein, object_id, ein, RgnTxt, RgnTtlExpndtrsAmt
+  ) %>%
+  filter(id_ein %in% acts_lostID) %>%
+  mutate(
+    f_location = RgnTxt,
+    f_location = str_to_lower(f_location, locale = "en"),
+    region = str_extract_all(f_location, string_lower_regions),
+    region = as.character(region),
+    region2 = str_remove_all(region, "[()\"]"),
+    region2 = case_when(region=="character(0)" ~ "NO REGION INFO",
+                        TRUE ~ region2),
+    region2= str_replace_all(region2, ", ", "_"),
+    region2= case_when(str_detect(region2, "_") == TRUE ~ str_remove(region2, "c"),
+                       TRUE ~ region2),
+    dest_asia_pacific = case_when(str_detect(region2, "asia|pacific") == TRUE |
+                                    str_detect(f_location, string_lower_asia) ~ 1,
+                                  TRUE ~ 0),
+    dest_europe = case_when(str_detect(region2, "europe") == TRUE |
+                              str_detect(f_location, string_lower_europe) == TRUE~ 1,
+                            TRUE ~ 0),
+    dest_africa  = case_when(str_detect(region2, "africa") == TRUE |
+                               str_detect(f_location, string_lower_africa) ~ 1,
+                             TRUE ~ 0),
+    dest_americas  = case_when(str_detect(region2, "america") == TRUE |
+                                 str_detect(f_location, string_lower_americas) ~ 1,
+                               TRUE ~ 0),
+    dest_americas = case_when(
+        f_location == "europe (including iceland and greenland)" |
+        f_location == "europe/iceland and greenland" |                                             
+        f_location == "europe (including iceland & greenland) - albania, andorra, austria, belgium" |
+        f_location == "europe (including iceland & greenland)" |                                     
+        f_location == "europe including iceland and greenland" |                                     
+        f_location == "europe (including iceland & greenland) -" |
+        f_location == "europe/iceland/greenland" |
+        f_location == "europe (including inceland & greenland)" |                                   
+        f_location == "europe (including iceland & greenland) - albania, andorra, austria, belgiu" |
+        f_location == "europe (including iceland and greenland" |
+        f_location == "europe(including iceland and greenland)" |
+        f_location == "europe ( including iceland and greenland)" |
+        f_location == "europe/inceland/greenland" ~ 0,
+      TRUE ~ dest_americas
+    ),
+    dest_asia_pacific = case_when(
+      f_location == "romania" |
+        f_location == "timisoara, romania (europe)" |                                                
+        f_location == "europe (including romania) -" |                                               
+        f_location == "northeastern romania" |
+        f_location == "tulcea, romania" |
+        f_location == "timis county, romania" |
+        f_location == "romania-eu" |         
+        f_location == "e. europe-roman" ~ 0,
+      TRUE ~ dest_asia_pacific
+    ),
+    dest_multi = case_when(dest_asia_pacific + dest_africa + dest_europe + dest_americas > 1 ~ 1,
+                           TRUE ~ 0),
+    dest_total = dest_asia_pacific + dest_africa + dest_europe + dest_americas,
+    dst_fctr_americas = as.factor(
+      case_when(
+        dest_americas == 1 ~ "Americas",
+        TRUE ~ "Other"
+      )
+    ),
+    dst_fctr_africa = as.factor(
+      case_when(
+        dest_africa == 1 ~ "Africa",
+        TRUE ~ "Other"
+      )
+    ),
+    dst_fctr_europe = as.factor(
+      case_when(
+        dest_europe == 1 ~ "Europe",
+        TRUE ~ "Other"
+      )
+    ),
+    dst_fctr_asia_pacific = as.factor(
+      case_when(
+        dest_asia_pacific == 1 ~ "Asia-Pacific",
+        TRUE ~ "Other"
+      )
+    ),
+    dst_fctr = as.factor(
+      case_when(
+        dest_multi == 1 ~ "Multiple regions",
+        dest_multi == 0 & dest_americas == 1 ~ "Americas",
+        dest_multi == 0 & dest_africa == 1 ~ "Africa",
+        dest_multi == 0 & dest_asia_pacific == 1 ~ "Asia-Pacific",
+        dest_multi == 0 & dest_europe == 1 ~ "Europe",
+        dest_americas == 0 & dest_europe == 0 &
+          dest_africa == 0 & dest_asia_pacific == 0 ~ "Pending region info"
+      )
+    ),
+    activities_americas = case_when(
+      dest_americas == 1 ~ RgnTtlExpndtrsAmt,
+      TRUE ~ 0
+    ),
+    activities_asia_pacific = case_when(
+      dest_asia_pacific == 1 ~ RgnTtlExpndtrsAmt,
+      TRUE ~ 0
+    ),
+    activities_europe = case_when(
+      dest_europe == 1 ~ RgnTtlExpndtrsAmt,
+      TRUE ~ 0
+    ),
+    activities_africa = case_when(
+      dest_africa == 1 ~ RgnTtlExpndtrsAmt,
+      TRUE ~ 0
+    ),
+    activities_multi = case_when(
+      dest_multi == 1 ~ RgnTtlExpndtrsAmt,
+      TRUE ~ 0
+    ),
+    activities_noInfo = case_when(
+      dst_fctr == "Pending region info" ~ RgnTtlExpndtrsAmt,
+      TRUE ~ 0
+    ),
+  )
 #----
 #-------------
 # Individual Grants

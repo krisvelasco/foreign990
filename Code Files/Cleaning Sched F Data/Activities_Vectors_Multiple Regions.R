@@ -5,8 +5,8 @@
 #   f_location strings in multi == 1
 #-----------------------------------
 
-acts_multi <- activities_cln %>%
-  filter(dest_multi == 1)
+#acts_multi <- activities_cln %>%
+#  filter(dest_multi == 1)
 
 # Asia
 Asia <- c("american samoa", "papua new guinea") 

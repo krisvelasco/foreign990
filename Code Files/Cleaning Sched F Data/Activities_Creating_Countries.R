@@ -1,10 +1,12 @@
 ## Project: Nonprofit Foreign Expenditures
 
 # Summarizing data on foreign activities (Schedule F of Form 990)
-#   Last updated: June 8, 2023
+#   Last updated: June 9, 2023
 
 # Output:
-#   XXXXXXX
+#   activities_country_230609.csv
+# Contains dummy variables for whether each country appears
+# in a line, as well as other dummies for summarizing info.
 #--------------------------------------------------------
 # Preliminaries
 #   Loading packages
@@ -65,38 +67,45 @@ string_lower_asia <- str_to_lower(string_asia_pacific, locale = "en")
 #--------------------------
 # Preliminary Activities Data
 #--------------------------
-activities_prelim <- read_csv("/Volumes/SRC_DATA/000_f990_data/activities_clean_prelim_230608.csv")
+activities_region <- read_csv("/Volumes/SRC_DATA/000_f990_data/activities_region_230608.csv")
 #-------------
 #-------------
 # Making Country Dummy Columns
 #-------------
+# Column names and country names
 
+# Africa
 africa_colnames <- pull(list_africa, `Country or Area`)
   africa_colnames <- str_to_lower(africa_colnames)
   africa_colnames2 <- str_replace_all(africa_colnames,
                                      " ",
                                      "_")
-  
+
+# Americas  
 americas_colnames <- pull(list_americas, `Country or Area`)
   americas_colnames <- str_to_lower(americas_colnames)
   americas_colnames2 <- str_replace_all(americas_colnames,
                                       " ",
                                       "_")
-  
+
+# Asia 
 asia_colnames <- pull(list_asia_pacific, `Country or Area`)
   asia_colnames <- str_to_lower(asia_colnames)
   asia_colnames2 <- str_replace_all(asia_colnames,
                                         " ",
                                         "_")
-  
+ 
+# Europe 
 europe_colnames <- pull(list_europe, `Country or Area`)
   europe_colnames <- str_to_lower(europe_colnames)
   europe_colnames2 <- str_replace_all(europe_colnames,
                                     " ",
                                     "_")
 
-activities_country <- activities_prelim %>%
+# Adding country dummies
+activities_country <- activities_region %>%
   mutate(
+  # AFRICA  
     afr_algeria = case_when(
       str_detect(f_location, "algeria") == TRUE ~ 1,
       str_detect(f_location, "algeria") == FALSE ~ 0
@@ -1119,68 +1128,15 @@ activities_country <- activities_prelim %>%
       country_eur_dummy == 0 &
       country_asia_dummy == 0  ~ 0,
   )
-) %>%
-  mutate_at(
-    c(17, 272), ~replace_na(.,0)
-    )
-
-
-
-#-------------
-#-------------
-# Summarized Activities - One Line per Org x Year
-#-------------
-# Important to decide: money (RgnTtlExpndtrsAmt) in -, those obs will be deleted, rights?
-activities_americas = case_when(
-  dest_americas == 1 & dest_multi == 0 ~ RgnTtlExpndtrsAmt,
-  dest_americas == 1 & dest_multi == 1 ~ RgnTtlExpndtrsAmt/total_regions,
-  TRUE ~ 0
-),
-activities_asia_pacific = case_when(
-  dest_asia_pacific == 1 & dest_multi == 0 ~ RgnTtlExpndtrsAmt,
-  dest_asia_pacific == 1 & dest_multi == 1 ~ RgnTtlExpndtrsAmt/total_regions,
-  TRUE ~ 0
-),
-activities_europe = case_when(
-  dest_europe == 1 & dest_multi == 0 ~ RgnTtlExpndtrsAmt,
-  dest_europe == 1 & dest_multi == 1 ~ RgnTtlExpndtrsAmt/total_regions,
-  TRUE ~ 0
-),
-activities_africa = case_when(
-  dest_africa == 1 ~ & dest_multi == 0 ~ RgnTtlExpndtrsAmt,
-  dest_africa == 1 & dest_multi == 1 ~ RgnTtlExpndtrsAmt/total_regions,
-  TRUE ~ 0
-),
-activities_multi = case_when(
-  dest_multi == 1 ~ RgnTtlExpndtrsAmt,
-  TRUE ~ 0
-),
-activities_noInfo = case_when(
-  dst_fctr == "Pending region info" ~ RgnTtlExpndtrsAmt,
-  TRUE ~ 0
 )
-) %>%
-  filter(
-    total_regions != 0 # we have to account for total_regions == 0
-  )
-group_by(id_ein) %>% 
-  summarise(
-    TotalActivities_americas=sum(activities_americas),
-    TotalActivities_asia_pacific=sum(activities_asia_pacific),
-    TotalActivities_europe=sum(activities_europe),
-    TotalActivities_africa=sum(activities_africa),
-    TotalActivities_multi=sum(activities_multi),
-    TotalActivities_noInfo=sum(activities_noInfo),
-    .groups = 'drop'
-  )
 
-# FOR WHEN WE WANT TO DEAL WITH DATA LOSS OF total_regions == 0
-missing_regions <- activities_cln %>%
-  filter(
-    total_regions == 0
-  ) %>%
-  group_by(f_location) %>%
-  summarise(
-    total_obs = n()
-  ) %>%
-  arrange(desc(total_obs))
+activities_country <- activities_country %>%
+  mutate_at(
+    c(22, 277), ~replace_na(.,0)
+    )
+#-----------------------------------------------------------
+# Data export
+#-----------------------------------------------------------
+# write_csv(activities_country,
+#           "/Volumes/SRC_DATA/000_f990_data/activities_country_230609.csv")
+#-----------------------------------------------------------

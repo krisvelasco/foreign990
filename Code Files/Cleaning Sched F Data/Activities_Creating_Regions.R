@@ -4,7 +4,7 @@
 #   Last updated: June 8, 2023
 
 # Output:
-#   activities_clean_prelim_230608.csv
+#   activities_regions_230608.csv
 #     This file includes factor and dummy variables
 #     specifying the regions to which nonprofits send data
 
@@ -74,7 +74,7 @@ string_lower_asia <- str_to_lower(string_asia_pacific, locale = "en")
 #-------------
 dirty_f_activities <- read_csv("/Volumes/SRC_DATA/000_f990_data/sched_f_activities.csv")
 
-activities_cln <- dirty_f_activities %>%
+activities_region <- dirty_f_activities %>%
   select(-id) %>%
   mutate(
     id_ein = paste0(object_id, ein)
@@ -218,6 +218,6 @@ activities_cln <- dirty_f_activities %>%
 #-------------
 # Export data
 #-------------
-write_csv(activities_cln,
-          "/Volumes/SRC_DATA/000_f990_data/activities_clean_prelim_230608.csv")
+# write_csv(activities_region,
+#           "/Volumes/SRC_DATA/000_f990_data/activities_region_230608.csv")
 #-------------

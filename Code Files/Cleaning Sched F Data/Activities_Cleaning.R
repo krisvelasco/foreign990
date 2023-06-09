@@ -69,11 +69,8 @@ list_asia_pacific  <- unsd %>%
 string_asia_pacific <- str_c(list_asia_pacific$`Country or Area`, collapse = "|")
 string_lower_asia <- str_to_lower(string_asia_pacific, locale = "en")
 # -------------------------
-# -------------------------  
-# Sched F (from Jacob)
-#-------------------------
 #-------------
-# Activities
+# Activities (from Jacob)
 #-------------
 dirty_f_activities <- read_csv("/Volumes/SRC_DATA/000_f990_data/sched_f_activities.csv")
 
@@ -218,3 +215,9 @@ activities_cln <- dirty_f_activities %>%
         dest_africa == 0 & dest_asia_pacific == 0 ~ "Pending region info"
       )
     ))
+#-------------
+# Export data
+#-------------
+write_csv(activities_cln,
+          "/Volumes/SRC_DATA/000_f990_data/activities_clean_prelim_230608.csv")
+#-------------

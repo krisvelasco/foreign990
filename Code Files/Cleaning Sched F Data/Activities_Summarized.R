@@ -1,89 +1,83 @@
+## Project: Nonprofit Foreign Expenditures
 
+# Summarizing data on foreign activities (Schedule F of Form 990)
+#   Last updated: June 21, 2023
 
-activities <- read_csv("/Volumes/SRC_DATA/000_f990_data/activities_country_230609.csv")
+# Output:
+#   activities_sum_230621.csv
+# Each row = org x year
+# Row containas dummy for whether or not money went to country X
+# and info on how much money went there.
+#--------------------------------------------------------
+# Preliminaries
+#   Loading packages
+#--------------------------------------------------------
+library(tidyverse)
+library(lubridate)
+library(readxl)
+library(stringr)
+library(xml2)
+#-------------
+#-------------
+# Data Import
+#-------------
+options(scipen=999) # Telling R to avoid the scientific notation altogether
+activities <- read_csv("/Volumes/SRC_DATA/000_f990_data/activities_country_230623.csv",
+                       col_types = cols(
+                          id_ein = col_character()
+                          )
+                        )
+#-------------
 
-summary(activities$region2)
-summary(activities$dest_asia_pacific)
-summary(activities$dest_europe)
-summary(activities$dest_africa)
-summary(activities$dest_americas)
-summary(activities$dest_multi)
-summary(activities$dest_antarctica)
-summary(activities$dest_noInfo)
-summary(activities$total_regions)
-summary(activities$dst_fctr_americas)
-summary(activities$dst_fctr_africa)
-summary(activities$dst_fctr_europe)
-summary(activities$dst_fctr_asia_pacific)
-summary(activities$dst_fctr)
+kenya <- activities %>%
+  filter(
+    afr_kenya == 1
+  ) %>%
+  select(
+    id_ein, f_location, lctn_xpnss_total, transfers_total, afr_kenya, exp_afr_kenya
+  )
+
+# examples of the problems we might have
 
 #-------------
+# Data cleaning
+#-------------
+#-------------
 activities_clean <- activities %>%
-  filter(
-    total_regions != 0, # we have to account for total_regions == 0
-    RgnTtlExpndtrsAmt > 0 # only positive values for expenses
-  )
+  select(-f_location, -lctn_xpnss_total, -transfers_total)
+#-------------
 #-------------
 # Summarized Activities - One Line per Org x Year
 #-------------
-activities_sum <- activities_clean %>%
+# Prefixes to consider
+prefixes <- c("country_", "asia_", "eur_",
+              "amr_", "afr_", "exp_")
+
+# Country. One line x org-year
+activities_country <- activities_clean %>%
+  group_by(id_ein) %>%
+  summarise(across(starts_with((prefixes)), sum)) %>%
+  rename(
+    country_reported_n = country_reported
+    ) %>%
   mutate(
-    activities_americas = case_when(
-    dest_americas == 1 & dest_multi == 0 ~ RgnTtlExpndtrsAmt,
-    dest_americas == 1 & dest_multi == 1 ~ RgnTtlExpndtrsAmt/total_regions,
-    TRUE ~ 0
-    ),
-    activities_asia_pacific = case_when(
-      dest_asia_pacific == 1 & dest_multi == 0 ~ RgnTtlExpndtrsAmt,
-      dest_asia_pacific == 1 & dest_multi == 1 ~ RgnTtlExpndtrsAmt/total_regions,
-      TRUE ~ 0
-    ),
-    activities_europe = case_when(
-      dest_europe == 1 & dest_multi == 0 ~ RgnTtlExpndtrsAmt,
-      dest_europe == 1 & dest_multi == 1 ~ RgnTtlExpndtrsAmt/total_regions,
-      TRUE ~ 0
-    ),
-    activities_africa = case_when(
-      dest_africa == 1 & dest_multi == 0 ~ RgnTtlExpndtrsAmt,
-      dest_africa == 1 & dest_multi == 1 ~ RgnTtlExpndtrsAmt/total_regions,
-      TRUE ~ 0
-    ),
-    activities_multi = case_when(
-      dest_multi == 1 ~ RgnTtlExpndtrsAmt,
-      TRUE ~ 0
+    reports_country = case_when(
+      country_reported_n > 0 ~ 1,
+      country_reported_n == 0 ~ 0
     )
   )
 
-test <- activities_clean %>%
-  arrange(id_ein) %>%
-  slice(1:10)
-
-test2 <- test %>%
-filter(
-  id_ein == "20140190934930089194815488"
-)
-
-# from here- single line with all countries
-# good regional expenses
-
-acts_sum <- activities_sum %>%
-group_by(id_ein) %>% 
-  summarise(
-    TotalActivities_americas=sum(activities_americas),
-    TotalActivities_asia_pacific=sum(activities_asia_pacific),
-    TotalActivities_europe=sum(activities_europe),
-    TotalActivities_africa=sum(activities_africa),
-    TotalActivities_multi=sum(activities_multi),
-    .groups = 'drop'
-  )
-
-# FOR WHEN WE WANT TO DEAL WITH DATA LOSS OF total_regions == 0
-missing_regions <- activities %>%
+kenya2 <- activities_country %>%
   filter(
-    total_regions == 0
+    afr_kenya == 1
   ) %>%
-  group_by(f_location) %>%
-  summarise(
-    total_obs = n()
-  ) %>%
-  arrange(desc(total_obs))
+  select(
+    id_ein, afr_kenya, exp_afr_kenya
+  )
+#-------------
+#-------------
+# Data export
+#-------------
+#write_csv(activities_country,
+#          "/Volumes/SRC_DATA/000_f990_data/activities_sum_230621.csv")
+#-------------
